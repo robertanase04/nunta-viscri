@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * Real load progress for the opening sequence.
@@ -15,12 +15,16 @@ export function usePreloadAssets(urls: readonly string[]): {
 } {
   const [loaded, setLoaded] = useState(0)
   const [done, setDone] = useState(urls.length === 0)
-  const started = useRef(false)
 
   useEffect(() => {
-    if (started.current || urls.length === 0) return
-    started.current = true
+    if (urls.length === 0) return
 
+    // Deliberately no "have I already started" ref here. Under StrictMode
+    // the effect runs, tears down, and runs again; a ref guard makes the
+    // second pass bail out while the first pass's handlers have already
+    // been disarmed by its cleanup, so nothing ever reports progress and
+    // the preloader sits at zero forever. Re-running is cheap — the second
+    // pass hits the HTTP cache — and correctness beats saving that.
     let alive = true
     let settled = 0
 

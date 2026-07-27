@@ -1,0 +1,317 @@
+/* ------------------------------------------------------------------
+   The opening sequence.
+
+   Geometry note: the invitation is a gate-fold. The two side panels
+   measure 444 and 304 against a 738 centre — they sum to 748, so they
+   meet over the middle when shut. Every width here is that measurement
+   expressed as a fraction, which is why the panels close flush instead
+   of overlapping by a few pixels.
+   ------------------------------------------------------------------ */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+
+/* One implied light source, upper left, for the whole sequence. */
+.stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 90% at 30% 8%,
+    rgb(255 255 255 / 0.18) 0%,
+    transparent 48%,
+    rgb(30 42 54 / 0.2) 100%
+  );
+}
+
+.stage[data-done='true'] {
+  pointer-events: none;
+}
+
+/* --- the card ---------------------------------------------------- */
+
+.card-viewport {
+  position: relative;
+  width: min(94vw, 78vh * 1.451);
+  perspective: 2400px;
+  perspective-origin: 50% 42%;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  transform-style: preserve-3d;
+  /* The centre panel's midpoint sits at 54.7% of the open card, not 50%.
+     Closed, the card is nudged so the visible face is optically centred;
+     the timeline returns this to zero as it opens. */
+  transform: translateX(var(--card-offset, -4.7%)) scale(var(--card-scale, 1));
+}
+
+.panel {
+  position: relative;
+  transform-style: preserve-3d;
+  flex: 0 0 auto;
+}
+
+/* Widths as measured off the source, normalised to the open card. */
+.panel-left {
+  width: 29.88%;
+  transform-origin: right center;
+}
+.panel-center {
+  width: 49.66%;
+  /* Held a hair behind the flaps. Folded shut they land within two degrees
+     of the centre panel's plane, and coplanar surfaces in a preserve-3d
+     context sort arbitrarily — without this the closed card showed its
+     inside face, with the flaps stacked behind the thing they cover. */
+  transform: translateZ(-2px);
+}
+.panel-right {
+  width: 20.46%;
+  transform-origin: left center;
+}
+
+.panel-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background: var(--paper);
+  box-shadow: var(--deboss);
+}
+
+.panel-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+/* The reverse of a folded flap: blank stock with a single rosette. */
+.panel-face-back {
+  transform: rotateY(180deg);
+  display: grid;
+  place-items: center;
+  background: var(--paper-warm);
+}
+
+/* Sized against the card, not against the flap. The two flaps are 30% and
+   20% of the card, so a percentage width here would print one rosette half
+   again as large as the other on a face that is meant to look uniform. */
+.panel-face-back svg {
+  width: clamp(28px, 4.2vw, 54px);
+  opacity: 0.45;
+  color: var(--ink);
+}
+
+/* The seam where the two flaps meet, plus the soft fall-off of a sheet
+   lying over another. Without it the shut card is a blank rectangle and
+   reads as a loading state rather than as a closed invitation. */
+.panel-left .panel-face-back {
+  background-image: linear-gradient(270deg, rgb(30 42 54 / 0.14) 0%, transparent 22%);
+}
+
+.panel-right .panel-face-back {
+  background-image: linear-gradient(90deg, rgb(30 42 54 / 0.14) 0%, transparent 26%);
+}
+
+/* The centre panel has no reverse — it never turns. */
+.panel-center .panel-face {
+  position: relative;
+}
+
+/* --- fold shading ------------------------------------------------
+
+   Without this the panels read as two rectangles pivoting, not as paper.
+   Opacity is driven from the timeline in step with the fold angle: full
+   while the flap is edge-on, gone once it lies flat.
+   ----------------------------------------------------------------- */
+
+.fold-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--fold-shade, 1);
+}
+
+.panel-left .fold-shade {
+  background: linear-gradient(90deg, rgb(30 42 54 / 0.42) 0%, rgb(30 42 54 / 0.06) 62%, transparent 100%);
+}
+
+.panel-right .fold-shade {
+  background: linear-gradient(270deg, rgb(30 42 54 / 0.42) 0%, rgb(30 42 54 / 0.06) 62%, transparent 100%);
+}
+
+/* The crease itself: a hard, narrow darkening at each hinge. */
+.panel-center::before,
+.panel-center::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  pointer-events: none;
+  opacity: var(--crease, 0);
+}
+.panel-center::before {
+  left: 0;
+  background: linear-gradient(90deg, rgb(30 42 54 / 0.3), transparent);
+}
+.panel-center::after {
+  right: 0;
+  background: linear-gradient(270deg, rgb(30 42 54 / 0.3), transparent);
+}
+
+/* --- cast shadow -------------------------------------------------
+
+   A separate blurred element rather than a filter on the card: a
+   drop-shadow filter re-rasterises the whole subtree every frame, and
+   the card is the most expensive thing on screen while it is moving.
+   ----------------------------------------------------------------- */
+
+.card-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -4%;
+  width: var(--shadow-width, 52%);
+  height: 6%;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 50%, rgb(30 42 54 / 0.34), transparent 72%);
+  filter: blur(18px);
+  opacity: var(--shadow-opacity, 0.5);
+  pointer-events: none;
+}
+
+/* --- preloader ---------------------------------------------------- */
+
+.preloader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 1.5rem;
+  background: var(--paper-deep);
+  z-index: 2;
+}
+
+.preloader-inner {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  color: var(--ink);
+}
+
+.preloader-star {
+  width: clamp(56px, 9vw, 88px);
+  animation: star-turn 5.5s linear infinite;
+}
+
+@keyframes star-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Progress is shown by how much of the star has been inked in, so the
+   preloader is the same ornament the site is built from rather than a
+   progress bar borrowed from somewhere else. */
+.preloader-star .ornament-facet-dark {
+  clip-path: inset(calc(100% - var(--progress, 0) * 100%) 0 0 0);
+}
+
+.preloader-label {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+}
+
+/* --- controls ----------------------------------------------------- */
+
+.skip {
+  position: absolute;
+  right: max(1.25rem, env(safe-area-inset-right));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  z-index: 4;
+  padding: 0.7rem 1.15rem;
+  color: var(--ink);
+  background: rgb(240 230 221 / 0.72);
+  border: 1px solid rgb(30 42 54 / 0.22);
+  border-radius: 2px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.skip:hover {
+  background: var(--paper);
+  border-color: rgb(30 42 54 / 0.45);
+}
+
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 2.2rem;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  color: var(--ink);
+  opacity: 0;
+}
+
+.scroll-hint-rule {
+  width: 1px;
+  height: 46px;
+  background: linear-gradient(var(--ink), transparent);
+}
+
+/* --- reduced motion ----------------------------------------------
+
+   Not a global animation kill: the card is simply already open, and the
+   only thing that happens is a cross-fade. Everything below still works,
+   it just arrives instead of performing.
+   ----------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader-star {
+    animation: none;
+  }
+  .card {
+    transform: none;
+  }
+  .panel-left,
+  .panel-right {
+    transform: none !important;
+  }
+}
+
+/* --- narrow screens ----------------------------------------------
+
+   A gate-fold needs roughly 1.45:1 to open into. At 390px there is no
+   such room, so the side panels are dropped from the card entirely and
+   the centre panel arrives on its own through an iris. Their content is
+   not lost — it becomes the first two sections of the page.
+   ----------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .card-viewport {
+    width: min(84vw, 58vh * 0.72);
+    perspective: none;
+  }
+  .panel-left,
+  .panel-right {
+    display: none;
+  }
+  .panel-center {
+    width: 100%;
+  }
+  .card {
+    transform: none;
+  }
+}
