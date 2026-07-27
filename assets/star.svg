@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-112 -112 224 224" role="img" aria-label="Stea-busolă">
+  <g stroke="currentColor" stroke-width="2.8" stroke-linejoin="round">
+    <path class="facet-light" fill="var(--star-facet, #DDE4EC)" d="M -13.78 -33.26 L 0.00 -100.00 L 0 0 Z M 13.78 -33.26 L 46.67 -46.67 L 0 0 Z M 33.26 -13.78 L 100.00 0.00 L 0 0 Z M 33.26 13.78 L 46.67 46.67 L 0 0 Z M 13.78 33.26 L 0.00 100.00 L 0 0 Z M -13.78 33.26 L -46.67 46.67 L 0 0 Z M -33.26 13.78 L -100.00 0.00 L 0 0 Z M -33.26 -13.78 L -46.67 -46.67 L 0 0 Z"/>
+    <path class="facet-dark"  fill="currentColor"               d="M 0 0 L 0.00 -100.00 L 13.78 -33.26 Z M 0 0 L 46.67 -46.67 L 33.26 -13.78 Z M 0 0 L 100.00 0.00 L 33.26 13.78 Z M 0 0 L 46.67 46.67 L 13.78 33.26 Z M 0 0 L 0.00 100.00 L -13.78 33.26 Z M 0 0 L -46.67 46.67 L -33.26 13.78 Z M 0 0 L -100.00 0.00 L -33.26 -13.78 Z M 0 0 L -46.67 -46.67 L -13.78 -33.26 Z"/>
+  </g>
+</svg>
