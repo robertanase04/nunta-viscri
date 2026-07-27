@@ -6,3 +6,4 @@ dist
 assets/source/*.css
 dist
 *.mjs.local
+tsconfig.tsbuildinfo
