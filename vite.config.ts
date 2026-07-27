@@ -9,8 +9,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          motion: ['gsap', 'framer-motion'],
-          forms: ['react-hook-form', 'zod', '@hookform/resolvers'],
+          motion: ['gsap'],
         },
       },
     },

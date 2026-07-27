@@ -125,15 +125,6 @@ export function App() {
             </dl>
           </Section>
 
-          <Section id="rsvp" stop="05" title="Ne spuneți dacă veniți?" side="center">
-            <p data-reveal>
-              Vă rugăm până la <strong>1 iulie 2026</strong>, ca să știm câte locuri să
-              ținem.
-            </p>
-            <p className="caps rsvp-placeholder" data-reveal>
-              Formularul se adaugă aici
-            </p>
-          </Section>
         </main>
 
         <footer className="colophon">

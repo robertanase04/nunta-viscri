@@ -119,17 +119,21 @@ export function RouteLine() {
         // Arrives from above the fold...
         { x: first.x, y: 0 },
         ...points,
-        // ...and runs out shortly past the final stop rather than ploughing
-        // through the colophon to the foot of the document.
-        { x: last.x, y: Math.min(last.y + 220, h) },
+        // ...and runs out below the final stop, drawn back toward the middle
+        // so it points at the centred colophon instead of leaving sideways
+        // off whichever edge the last stop happened to sit on.
+        { x: (last.x + w / 2) / 2, y: Math.min(last.y + 80, h) },
+        { x: w / 2, y: Math.min(last.y + 150, h) },
       ]
 
-      // The bow has to stay inside the lane the layout leaves clear. Scaled
-      // as a share of viewport width it overshot on a phone and the track
-      // sawed straight through the body copy, so narrow screens get a fixed,
-      // deliberately small amplitude instead.
+      // The bow is only here to keep a run of same-side waypoints from
+      // being a ruled vertical; the serpentine itself comes from stops
+      // alternating sides. It has to stay inside the lane the layout
+      // leaves clear, and every section now holds two waypoints on one
+      // side, so a viewport-scaled amplitude put the track through the
+      // body copy at full width. Small and fixed is what this wants.
       setSize({ w, h })
-      setPath(buildPath(full, w < 720 ? 22 : Math.min(w * 0.16, 130)))
+      setPath(buildPath(full, 26))
     }
 
     measure()

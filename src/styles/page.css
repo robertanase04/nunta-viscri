@@ -79,14 +79,6 @@
   max-width: var(--measure);
 }
 
-.rsvp-placeholder {
-  color: var(--ink-soft);
-  border: 1px dashed var(--ink-ghost);
-  padding: 2rem 1.5rem;
-  width: 100%;
-  text-align: center;
-}
-
 /* --- colophon ----------------------------------------------------- */
 
 .colophon {
