@@ -1,0 +1,72 @@
+/* ------------------------------------------------------------------
+   Design tokens — extracted by sampling assets/source/invitation-hi.jpeg,
+   not chosen by eye. See scripts/extract-palette.py for the measurement.
+
+   The engraving uses a SINGLE ink. Everything that reads lighter in the
+   original is line density, not diluted pigment — so the lighter values
+   below are opacity steps of that one ink, never separate colours.
+   ------------------------------------------------------------------ */
+
+:root {
+  /* --- ink: one colour, four densities --- */
+  --ink-deep: #08192d;
+  --ink: #1e2a36;
+  --ink-soft: rgb(30 42 54 / 0.62);
+  --ink-ghost: rgb(30 42 54 / 0.28);
+  --ink-faint: rgb(30 42 54 / 0.12);
+
+  /* --- paper --- */
+  --paper: #f0e6dd;
+  --paper-warm: #eae1d8;
+  --paper-deep: #e0d7ce;
+  --paper-shadow: #cfc4b8;
+
+  /* --- the pale face of a faceted ornament --- */
+  --star-facet: #ccd1d7;
+
+  /* --- type --- */
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
+  --font-caps: 'Cinzel', 'Georgia', serif;
+
+  /* Fluid scale. clamp() throughout — no typographic breakpoints. */
+  --step--1: clamp(0.78rem, 0.74rem + 0.18vw, 0.88rem);
+  --step-0: clamp(0.95rem, 0.9rem + 0.24vw, 1.1rem);
+  --step-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.55rem);
+  --step-2: clamp(1.55rem, 1.35rem + 1vw, 2.3rem);
+  --step-3: clamp(2rem, 1.6rem + 2vw, 3.4rem);
+  --step-4: clamp(2.6rem, 1.9rem + 3.4vw, 5rem);
+  --step-5: clamp(3.2rem, 2rem + 5.6vw, 7rem);
+
+  /* Wide-spaced capitals, the register used for dates and labels. */
+  --tracking-caps: 0.22em;
+  --tracking-caps-wide: 0.34em;
+
+  /* --- rhythm --- */
+  --gutter: clamp(1.25rem, 0.9rem + 1.8vw, 3rem);
+  --measure: 62ch;
+  --panel-ratio: 0.6875; /* w/h of one invitation panel, measured */
+
+  /* --- motion --- */
+  --ease-paper: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 260ms;
+  --dur-mid: 620ms;
+  --dur-slow: 1200ms;
+
+  /* --- depth: letterpress, not drop shadow --- */
+  --deboss: inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -1px 0 rgb(30 42 54 / 0.07);
+  --lift-sm: 0 1px 2px rgb(30 42 54 / 0.06), 0 4px 12px rgb(30 42 54 / 0.05);
+  --lift-lg: 0 8px 24px rgb(30 42 54 / 0.1), 0 30px 70px rgb(30 42 54 / 0.12);
+
+  --z-grain: 60;
+  --z-cursor: 90;
+}
+
+/* The site is a printed plate; it does not have a dark mode. Honour the
+   preference only by warming the paper slightly to cut glare at night. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #e9dfd5;
+    --paper-warm: #e2d8ce;
+  }
+}
