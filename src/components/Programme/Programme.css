@@ -1,0 +1,118 @@
+.programme {
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4.5rem);
+  width: 100%;
+  text-align: left;
+}
+
+.day-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--ink-faint);
+  margin-bottom: 1.25rem;
+}
+
+.day-name {
+  font-size: var(--step-2);
+  color: var(--ink-deep);
+}
+
+.day-date {
+  color: var(--ink-soft);
+}
+
+.day-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 0.6rem;
+  border-radius: 2px;
+  transition: background var(--dur-fast);
+}
+
+.entry:hover {
+  background: var(--paper-warm);
+}
+
+.entry-icon {
+  width: 2rem;
+  color: var(--ink);
+}
+
+.entry-icon svg {
+  width: 100%;
+}
+
+/* The icon redraws itself on hover rather than growing. Every path carries
+   pathLength=1, so one normalised offset drives the whole set at a single
+   rate no matter how much geometry each icon actually has. */
+@media (prefers-reduced-motion: no-preference) {
+  .entry-icon svg path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .entry:hover .entry-icon svg path {
+    animation: redraw 620ms var(--ease-paper) both;
+  }
+
+  .entry:hover .entry-icon svg path:nth-child(2) {
+    animation-delay: 70ms;
+  }
+  .entry:hover .entry-icon svg path:nth-child(3) {
+    animation-delay: 140ms;
+  }
+  .entry:hover .entry-icon svg path:nth-child(4) {
+    animation-delay: 210ms;
+  }
+}
+
+@keyframes redraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.entry-text {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.entry-label {
+  font-size: var(--step-1);
+  line-height: 1.25;
+}
+
+.entry-note {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.entry-time {
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .entry {
+    grid-template-columns: 2rem 1fr;
+    row-gap: 0.25rem;
+  }
+  .entry-time {
+    grid-column: 2;
+  }
+}

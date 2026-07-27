@@ -1,0 +1,25 @@
+/* The route sits behind everything and takes no pointer events: it is
+   scenery and wayfinding, never a target. */
+.route-host {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.route-host svg {
+  display: block;
+}
+
+/* Transforms are written by GSAP on every scroll tick, so the rider is the
+   one element here worth keeping on its own layer. */
+.route-rider {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-rider {
+    will-change: auto;
+  }
+}

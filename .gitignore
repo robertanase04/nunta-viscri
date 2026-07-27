@@ -4,3 +4,5 @@ dist
 *.local
 .vercel
 assets/source/*.css
+dist
+*.mjs.local

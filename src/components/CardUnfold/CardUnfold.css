@@ -183,7 +183,7 @@
   width: var(--shadow-width, 52%);
   height: 6%;
   transform: translateX(-50%);
-  background: radial-gradient(50% 50%, rgb(30 42 54 / 0.34), transparent 72%);
+  background: radial-gradient(closest-side at 50% 50%, rgb(30 42 54 / 0.34), transparent 72%);
   filter: blur(18px);
   opacity: var(--shadow-opacity, 0.5);
   pointer-events: none;

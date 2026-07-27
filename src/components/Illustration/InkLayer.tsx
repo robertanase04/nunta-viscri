@@ -54,14 +54,15 @@ export function InkLayer({
         // warns on the camelCase spelling.
         {...(priority ? { fetchpriority: 'high' } : {})}
         style={{
+          // Reserving the box is the whole of the layout-shift story here;
+          // there is deliberately no blur-up placeholder behind the image.
+          // These layers have a transparent ground, so an opaque thumbnail
+          // sitting underneath is not covered when the real image decodes —
+          // it stays visible through every part of the art that is meant to
+          // be paper, as a grey rectangle around the drawing.
           aspectRatio: `${meta.width} / ${meta.height}`,
           width: '100%',
           height: 'auto',
-          // The blurred stand-in is painted behind the image, so it is
-          // covered the instant the real one decodes — no crossfade needed
-          // and nothing to clean up.
-          backgroundImage: `url("${meta.lqip}")`,
-          backgroundSize: 'cover',
           ...style,
         }}
       />

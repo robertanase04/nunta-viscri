@@ -1,0 +1,152 @@
+/* The page proper. Everything sits above the route, which is drawn at
+   z-index 0 across the full document height. */
+
+.page {
+  position: relative;
+  overflow-x: clip;
+}
+
+/* --- masthead ----------------------------------------------------- */
+
+.masthead {
+  position: relative;
+  z-index: 1;
+  min-height: 78vh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1.1rem;
+  text-align: center;
+  padding: clamp(4rem, 12vh, 9rem) var(--gutter) clamp(3rem, 8vh, 6rem);
+}
+
+.masthead-kicker {
+  color: var(--ink-soft);
+}
+
+.masthead-name {
+  font-size: var(--step-5);
+  color: var(--ink-deep);
+  letter-spacing: -0.022em;
+  line-height: 0.94;
+}
+
+.masthead-name .amp {
+  font-style: italic;
+  font-weight: 400;
+  /* The ampersand is a piece of drawing, not a word; it sits smaller and
+     lighter so the two names carry the line. */
+  font-size: 0.62em;
+  color: var(--ink);
+  padding-inline: 0.06em;
+}
+
+.masthead-dates {
+  color: var(--ink-soft);
+}
+
+.masthead-star {
+  width: clamp(26px, 3vw, 38px);
+  color: var(--ink);
+  margin-top: 0.5rem;
+}
+
+/* --- shared blocks ------------------------------------------------ */
+
+.figure {
+  display: grid;
+  gap: 0.7rem;
+  width: min(100%, 26rem);
+}
+
+.figure-caption {
+  color: var(--ink-soft);
+}
+
+.facts {
+  display: grid;
+  gap: 1.6rem;
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+
+.facts dd {
+  margin: 0;
+  max-width: var(--measure);
+}
+
+.rsvp-placeholder {
+  color: var(--ink-soft);
+  border: 1px dashed var(--ink-ghost);
+  padding: 2rem 1.5rem;
+  width: 100%;
+  text-align: center;
+}
+
+/* --- colophon ----------------------------------------------------- */
+
+.colophon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 1.6rem;
+  padding: clamp(5rem, 12vh, 9rem) var(--gutter) clamp(3rem, 7vh, 5rem);
+  text-align: center;
+}
+
+.colophon-bird {
+  width: clamp(64px, 8vw, 96px);
+  color: var(--ink);
+  opacity: 0.8;
+}
+
+.colophon-rule {
+  width: min(100%, 17rem);
+  color: var(--ink);
+  opacity: 0.65;
+}
+
+.colophon-quote {
+  margin: 0;
+  font-size: var(--step-2);
+  line-height: 1.4;
+  color: var(--ink-deep);
+  max-width: 30ch;
+}
+
+.colophon-hay {
+  width: min(60vw, 300px);
+  opacity: 0.85;
+  margin-top: 1rem;
+}
+
+.colophon-place {
+  color: var(--ink-soft);
+}
+
+.replay {
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--ink-ghost);
+  padding: 0.3rem 0;
+  cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.replay:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.colophon-rosette {
+  width: 30px;
+  color: var(--ink);
+  opacity: 0.5;
+  margin-top: 1rem;
+}

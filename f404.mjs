@@ -1,0 +1,10 @@
+import { chromium } from 'playwright'
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } })
+p.on('response', r => { if (r.status() >= 400) console.log(' ', r.status(), r.url()) })
+await p.goto('http://localhost:5173/', { waitUntil: 'load' })
+await p.waitForTimeout(1200)
+const s = await p.$('.skip'); if (s) await s.click()
+await p.waitForTimeout(1200)
+await p.evaluate(() => window.scrollTo(0, 3000)); await p.waitForTimeout(1200)
+await b.close()

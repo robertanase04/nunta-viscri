@@ -19,7 +19,7 @@
  */
 
 import sharp from 'sharp'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -59,7 +59,7 @@ const REGIONS = {
   /* Parallax strata, cut from the centre panel. They overlap deliberately;
      alpha keying means the overlaps are invisible until they move. */
   'layer-sky': { left: 470, top: 0, width: 726, height: 300 },
-  'layer-castle': { left: 700, top: 190, width: 496, height: 400 },
+  'layer-castle': { left: 812, top: 248, width: 350, height: 260 },
   'layer-village': { left: 470, top: 620, width: 726, height: 404 },
 
   /* Vignettes reused across the site. */
@@ -124,21 +124,18 @@ async function toInkStamp(pipeline) {
   return sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })
 }
 
-/** A 20px WebP standing in for the image until it decodes. */
-async function lqip(pipeline) {
-  const buf = await pipeline
-    .clone()
-    .resize(20, null, { fit: 'inside' })
-    .webp({ quality: 42, alphaQuality: 60 })
-    .toBuffer()
-  return `data:image/webp;base64,${buf.toString('base64')}`
-}
-
 async function main() {
   await mkdir(OUT, { recursive: true })
-  const manifest = {}
+
+  // Optional name filter, so re-cropping one region does not mean waiting
+  // out an encode of all ten. The manifest is merged, never replaced.
+  const only = process.argv[2]
+  const manifest = only
+    ? JSON.parse(await readFile(join(ROOT, 'src/assets/manifest.json'), 'utf8'))
+    : {}
 
   for (const [name, box] of Object.entries(REGIONS)) {
+    if (only && !name.includes(only)) continue
     const stamp = await toInkStamp(sharp(SRC).extract(box))
     const cls = classOf(name)
     const widths = WIDTH_SETS[cls].filter((w) => w <= box.width * 2)
@@ -168,7 +165,6 @@ async function main() {
       height: box.height,
       aspect: +(box.width / box.height).toFixed(4),
       widths: emitted,
-      lqip: await lqip(stamp),
     }
     console.log(`  ${name.padEnd(14)} ${box.width}x${box.height}  ->  ${emitted.join(', ')}`)
   }
