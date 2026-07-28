@@ -162,3 +162,69 @@
     animation: none;
   }
 }
+
+/* ------------------------------------------------------------------
+   The card frame: two rules and four rosettes, sized independently.
+   ------------------------------------------------------------------ */
+
+.card-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --frame-pad: clamp(0.5rem, 1.5%, 1.1rem);
+  --rosette: clamp(13px, 3.4%, 26px);
+}
+
+.card-frame-rule {
+  position: absolute;
+  border: 1px solid var(--ink);
+}
+
+.card-frame-outer {
+  inset: var(--frame-pad);
+  border-width: 2px;
+  opacity: 0.85;
+}
+
+.card-frame-inner {
+  inset: calc(var(--frame-pad) + 7px);
+  opacity: 0.5;
+}
+
+/* The rosettes sit on the outer rule, centred on each corner, and keep
+   their own size whatever the panel is scaled to. */
+.card-frame-rosette {
+  position: absolute;
+  width: var(--rosette);
+  height: var(--rosette);
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.card-frame-rosette svg {
+  width: 100%;
+}
+
+.card-frame-tl {
+  top: var(--frame-pad);
+  left: var(--frame-pad);
+  transform: translate(-50%, -50%);
+}
+.card-frame-tr {
+  top: var(--frame-pad);
+  right: var(--frame-pad);
+  transform: translate(50%, -50%);
+}
+.card-frame-bl {
+  bottom: var(--frame-pad);
+  left: var(--frame-pad);
+  transform: translate(-50%, 50%);
+}
+.card-frame-br {
+  bottom: var(--frame-pad);
+  right: var(--frame-pad);
+  transform: translate(50%, 50%);
+}

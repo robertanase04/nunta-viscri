@@ -1,32 +1,31 @@
 {
-  "panel-left": {
-    "width": 517,
-    "height": 1333,
-    "aspect": 0.3878,
+  "cover-left": {
+    "width": 461,
+    "height": 1260,
+    "aspect": 0.3659,
     "widths": [
       480,
-      720,
-      1000
+      720
     ]
   },
-  "panel-center": {
-    "width": 977,
-    "height": 1333,
-    "aspect": 0.7329,
+  "cover-right": {
+    "width": 461,
+    "height": 1260,
+    "aspect": 0.3659,
+    "widths": [
+      480,
+      720
+    ]
+  },
+  "map": {
+    "width": 979,
+    "height": 1298,
+    "aspect": 0.7542,
     "widths": [
       480,
       720,
       1000,
       1400
-    ]
-  },
-  "panel-right": {
-    "width": 416,
-    "height": 1333,
-    "aspect": 0.3121,
-    "widths": [
-      480,
-      720
     ]
   },
   "cetatea": {
@@ -69,6 +68,14 @@
       360
     ]
   },
+  "tandem-rosu": {
+    "width": 98,
+    "height": 90,
+    "aspect": 1.0889,
+    "widths": [
+      98
+    ]
+  },
   "tandem": {
     "width": 372,
     "height": 362,
@@ -97,14 +104,6 @@
       220,
       360,
       520
-    ]
-  },
-  "tandem-rosu": {
-    "width": 98,
-    "height": 90,
-    "aspect": 1.0889,
-    "widths": [
-      98
     ]
   }
 }

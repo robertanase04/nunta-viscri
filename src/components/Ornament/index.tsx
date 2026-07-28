@@ -190,41 +190,6 @@ export function Ribbon({
 }
 
 /**
- * The double border with a rosette pinned at each corner — the frame every
- * panel of the invitation sits inside. Drawn as a frame rather than four
- * edges so it can be revealed by stroke-dashoffset in one pass.
- */
-export function PanelFrame({ className, style }: Omit<Decorative, 'label'>) {
-  const corners: Array<[number, number]> = [
-    [0, 0],
-    [100, 0],
-    [0, 100],
-    [100, 100],
-  ]
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      className={className}
-      style={style}
-      aria-hidden
-    >
-      <g fill="none" stroke="currentColor" vectorEffect="non-scaling-stroke">
-        <rect className="panel-frame-outer" x={1.2} y={1.2} width={97.6} height={97.6} strokeWidth={2.4} />
-        <rect className="panel-frame-inner" x={3.4} y={3.4} width={93.2} height={93.2} strokeWidth={1} />
-      </g>
-      {/* Corner rosettes ride in a non-scaling wrapper so they stay round
-          however the frame is stretched. */}
-      {corners.map(([x, y]) => (
-        <g key={`${x}-${y}`} transform={`translate(${x} ${y})`}>
-          <circle r={0} />
-        </g>
-      ))}
-    </svg>
-  )
-}
-
-/**
  * A dotted route segment, drawn as the invitation draws it: two parallel
  * dashed rules with a fainter tread between them, like a cart track.
  */
@@ -288,3 +253,27 @@ export function Swallow({ label, className, style }: Decorative) {
 }
 
 export { polar, pt }
+
+/**
+ * The double border with a rosette pinned at each corner.
+ *
+ * Built from CSS rules and four separately placed rosettes rather than one
+ * stretched SVG. The printed frames on the two cover panels are 530 and 436
+ * wide against the same height, so showing them as equal rectangles by
+ * scaling the raster would have squeezed one set of corner rosettes into
+ * ellipses. Drawn this way the rules stretch, the rosettes do not, and all
+ * three panels of the card carry the identical frame.
+ */
+export function CardFrame({ className, style }: Omit<Decorative, 'label'>) {
+  return (
+    <div className={`card-frame ${className ?? ''}`} style={style} aria-hidden>
+      <span className="card-frame-rule card-frame-outer" />
+      <span className="card-frame-rule card-frame-inner" />
+      {(['tl', 'tr', 'bl', 'br'] as const).map((corner) => (
+        <span key={corner} className={`card-frame-rosette card-frame-${corner}`}>
+          <Rosette />
+        </span>
+      ))}
+    </div>
+  )
+}

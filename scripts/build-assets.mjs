@@ -28,9 +28,14 @@ const OUT = join(ROOT, 'public/art')
 
 /** Measured from the source — see the palette extraction in tokens.css. */
 const PAPER_LUM = 236
-const INK_LUM = 60
-/** <1 lifts mid-density hatching so it does not wash out. */
-const ALPHA_GAMMA = 0.78
+const INK_LUM = 50
+/**
+ * <1 lifts mid-density ink. This plate is set in fine hairline type and
+ * the card is shown at roughly a quarter of the source width, so every
+ * stroke is fighting the downscale; at 0.78 the result read visibly
+ * lighter than the printed original.
+ */
+const ALPHA_GAMMA = 0.6
 
 /**
  * Everything below this coverage is the source JPEG's paper grain, not
@@ -60,15 +65,28 @@ const VOID_RGB = [45, 85, 153]
  * columns) rather than by eye.
  */
 const REGIONS = {
-  /* Panels. The fold gutters were located as sustained bright columns and
-     the borders as the darkest ones. The two cover flaps are not the same
-     width — 517 against 416 — which the layout has to account for rather
-     than assume symmetry. */
-  'panel-left': { left: 8, top: 0, width: 517, height: 1333 },
-  'panel-center': { left: 568, top: 0, width: 977, height: 1333 },
-  'panel-right': { left: 1580, top: 0, width: 416, height: 1333 },
+  /* The two cover panels, cropped to the inside of their printed borders.
+     The borders themselves are left behind and redrawn in the markup: the
+     printed frames are 530 and 436 wide against a common height, so any
+     attempt to show them as two equal rectangles either letterboxes one or
+     stretches the other — and stretching turns the corner rosettes, which
+     are circles, into ellipses. Drawn frames are identical by construction
+     and stay circular whatever the panel is scaled to.
 
-  /* Vignettes lifted off the centre map, read from a coordinate grid. */
+     Bounds found by scanning for the columns and rows carrying a full
+     height of ink, which is what a border rule is and body copy is not. */
+  'cover-left': { left: 53, top: 51, width: 461, height: 1260 },
+  /* Padded out to the left panel's width with transparent margin, so the
+     two covers share one aspect ratio and seat identically inside identical
+     frames. The margin reads as paper because the stamp composites over it. */
+  'cover-right': { left: 1584, top: 51, width: 360, height: 1260, padTo: 461 },
+
+  /* The map. It starts at 547 — the first column of drawing after the fold
+     rule — not at 568: cropping there sliced the left flank off the
+     fortress, which is drawn hard up against the fold. */
+  'map': { left: 547, top: 18, width: 979, height: 1298 },
+
+  /* Vignettes lifted off the map, read from a coordinate grid. */
   'cetatea': { left: 588, top: 85, width: 285, height: 255 },
   'casa-viscri': { left: 1025, top: 488, width: 420, height: 268 },
   'bike-inn': { left: 572, top: 938, width: 302, height: 252 },
@@ -89,7 +107,8 @@ const WIDTH_SETS = {
   vignette: [220, 360, 520, 700],
 }
 
-const classOf = (name) => (name.startsWith('panel-') ? 'panel' : 'vignette')
+const classOf = (name) =>
+  name.startsWith('cover-') || name === 'map' ? 'panel' : 'vignette'
 
 /**
  * Turn the tile into an ink stamp: paper keyed out into alpha, the plate's
@@ -156,15 +175,40 @@ async function main() {
 
   for (const [name, box] of Object.entries(REGIONS)) {
     if (only && !name.includes(only)) continue
-    const stamp = await toInkStamp(sharp(SRC).extract(box))
+    const { padTo, ...crop } = box
+    let stamp = await toInkStamp(sharp(SRC).extract(crop))
+
+    if (padTo) {
+      const total = padTo - crop.width
+      const leftPad = Math.floor(total / 2)
+      stamp = sharp(
+        await stamp
+          .extend({
+            left: leftPad,
+            right: total - leftPad,
+            background: { r: VOID_RGB[0], g: VOID_RGB[1], b: VOID_RGB[2], alpha: 0 },
+          })
+          .png()
+          .toBuffer(),
+      )
+    }
     const cls = classOf(name)
-    const widths = WIDTH_SETS[cls].filter((w) => w <= box.width * 2)
-    if (widths.length === 0) widths.push(box.width)
+    const srcW = padTo ?? crop.width
+    const srcH = crop.height
+    const widths = WIDTH_SETS[cls].filter((w) => w <= srcW * 2)
+    if (widths.length === 0) widths.push(srcW)
 
     const emitted = []
     for (const w of widths) {
-      const h = Math.round((w / box.width) * box.height)
-      const base = stamp.clone().resize(w, h, { kernel: 'lanczos3' })
+      const h = Math.round((w / srcW) * srcH)
+      // A light sharpen after the resize. Reducing a hairline engraving to
+      // a quarter of its size softens every stroke, and on ink whose weight
+      // lives entirely in the alpha channel that reads as faded printing
+      // rather than as a small image.
+      const base = stamp
+        .clone()
+        .resize(w, h, { kernel: 'lanczos3' })
+        .sharpen({ sigma: 0.7, m1: 0.4, m2: 0.9 })
 
       const jobs = [
         base.clone().avif({ quality: 60, effort: 6 }).toFile(join(OUT, `${name}-${w}.avif`)),
@@ -181,12 +225,12 @@ async function main() {
     }
 
     manifest[name] = {
-      width: box.width,
-      height: box.height,
-      aspect: +(box.width / box.height).toFixed(4),
+      width: srcW,
+      height: srcH,
+      aspect: +(srcW / srcH).toFixed(4),
       widths: emitted,
     }
-    console.log(`  ${name.padEnd(14)} ${box.width}x${box.height}  ->  ${emitted.join(', ')}`)
+    console.log(`  ${name.padEnd(14)} ${srcW}x${srcH}  ->  ${emitted.join(', ')}`)
   }
 
   await writeFile(
