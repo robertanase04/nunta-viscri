@@ -41,7 +41,26 @@ export function App() {
      replaces the dismiss button — you leave the invitation by reading on,
      not by closing it. */
   useEffect(() => {
-    if (!open || reduced) return
+    if (!open) return
+
+    /* Reduced motion gets no scroll-driven fade, so the card has to be
+       dismissed outright.
+
+       Leaving this to the early return below was a bug that hid the entire
+       site from anyone browsing with reduced motion switched on: the page
+       unlocked and scrolled underneath, but the only thing that ever
+       removed the fixed overlay was the ScrollTrigger this branch skips.
+       The invitation stayed put and the scrollbar moved on its own. */
+    if (reduced) {
+      const tween = gsap.to(overlay.current, {
+        autoAlpha: 0,
+        duration: 0.45,
+        ease: 'power2.inOut',
+      })
+      return () => {
+        tween.kill()
+      }
+    }
 
     const ctx = gsap.context(() => {
       gsap.to(overlay.current, {
@@ -57,10 +76,24 @@ export function App() {
       })
     })
 
+    /* A backstop, because the failure mode here is losing the whole site
+       rather than losing an effect. If the scrub has not taken the overlay
+       away by the time the reader is well past it, take it away. This only
+       ever hides, so it cannot fight the scrub on the way back up. */
+    const onScroll = () => {
+      if (window.scrollY > window.innerHeight * 1.25 && overlay.current) {
+        gsap.set(overlay.current, { autoAlpha: 0 })
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+
     // The route measures itself against document height, which only
     // settles once the lock is lifted and the page has its real length.
     ScrollTrigger.refresh()
-    return () => ctx.revert()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      ctx.revert()
+    }
   }, [open, reduced])
 
   return (

@@ -116,7 +116,11 @@ const REGIONS = {
   'tandem-rosu': { left: 1146, top: 1196, width: 98, height: 90 },
 
   /* And off the two cover panels. */
-  'tandem': { left: 74, top: 300, width: 400, height: 462 },
+  /* The whole Casa Tanase emblem — heart, both towers with their flags,
+     the tandem and the ribbon with both curled tails. The first crop began
+     at row 300, which is halfway up the castle wall, and ran past the
+     ribbon into the rosette below it. */
+  'tandem': { left: 60, top: 100, width: 426, height: 630 },
   'indicatoare': { left: 1596, top: 978, width: 198, height: 172 },
   'cuplu-inima': { left: 1628, top: 172, width: 305, height: 285 },
 }
