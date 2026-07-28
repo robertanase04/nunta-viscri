@@ -1,17 +1,17 @@
 {
   "cover-left": {
-    "width": 461,
-    "height": 1260,
-    "aspect": 0.3659,
+    "width": 493,
+    "height": 1340,
+    "aspect": 0.3679,
     "widths": [
       480,
       720
     ]
   },
   "cover-right": {
-    "width": 461,
-    "height": 1260,
-    "aspect": 0.3659,
+    "width": 493,
+    "height": 1340,
+    "aspect": 0.3679,
     "widths": [
       480,
       720

@@ -75,11 +75,24 @@ const REGIONS = {
 
      Bounds found by scanning for the columns and rows carrying a full
      height of ink, which is what a border rule is and body copy is not. */
-  'cover-left': { left: 53, top: 51, width: 461, height: 1260 },
-  /* Padded out to the left panel's width with transparent margin, so the
-     two covers share one aspect ratio and seat identically inside identical
-     frames. The margin reads as paper because the stamp composites over it. */
-  'cover-right': { left: 1584, top: 51, width: 360, height: 1260, padTo: 461 },
+  /* Taken fully inside the innermost printed rules. Those sit at columns
+     51-53 and 514-517 on the left panel, 1581-1583 and 1945-1947 on the
+     right, and at rows 49-52 and 1279-1282 on both.
+
+     Getting this wrong is what made one cover look worse than the other.
+     The first crop began on column 53 — half of the left panel's own rule —
+     so that cover carried a line down each side; the right crop happened to
+     clear its columns, so only one of the two was affected. Correcting the
+     columns alone then left something stranger: the crop cleared the top
+     rule but still contained the bottom one, so both covers showed an inner
+     frame with a horizontal at the foot, none at the head and none at the
+     sides — a broken rectangle, which reads worse than either a full frame
+     or none at all.
+
+     Both are then padded to a common box, so they sit at the same scale
+     inside identical frames. */
+  'cover-left': { left: 56, top: 55, width: 456, height: 1222, padTo: 493, padToH: 1340 },
+  'cover-right': { left: 1585, top: 55, width: 359, height: 1222, padTo: 493, padToH: 1340 },
 
   /* The map, taken between its own border rules — full-height columns of
      ink at 569 and 1527, distinct from the fold rule at 545. Cropping to
@@ -182,17 +195,21 @@ async function main() {
 
   for (const [name, box] of Object.entries(REGIONS)) {
     if (only && !name.includes(only)) continue
-    const { padTo, ...crop } = box
+    const { padTo, padToH, ...crop } = box
     let stamp = await toInkStamp(sharp(SRC).extract(crop))
 
-    if (padTo) {
-      const total = padTo - crop.width
-      const leftPad = Math.floor(total / 2)
+    if (padTo || padToH) {
+      const dx = (padTo ?? crop.width) - crop.width
+      const dy = (padToH ?? crop.height) - crop.height
+      const l = Math.floor(dx / 2)
+      const t = Math.floor(dy / 2)
       stamp = sharp(
         await stamp
           .extend({
-            left: leftPad,
-            right: total - leftPad,
+            left: l,
+            right: dx - l,
+            top: t,
+            bottom: dy - t,
             background: { r: VOID_RGB[0], g: VOID_RGB[1], b: VOID_RGB[2], alpha: 0 },
           })
           .png()
@@ -201,7 +218,7 @@ async function main() {
     }
     const cls = classOf(name)
     const srcW = padTo ?? crop.width
-    const srcH = crop.height
+    const srcH = padToH ?? crop.height
     const widths = WIDTH_SETS[cls].filter((w) => w <= srcW * 2)
     if (widths.length === 0) widths.push(srcW)
 
