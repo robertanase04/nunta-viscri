@@ -4,12 +4,27 @@ import { CardFrame, CompassStar } from '../Ornament'
 import { criticalArtUrls, InkLayer } from '../Illustration/InkLayer'
 import { usePreloadAssets } from '../../hooks/usePreloadAssets'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { T } from '../../copy'
 import './CardUnfold.css'
 
 const CRITICAL = criticalArtUrls(['cover-left', 'cover-right', 'map'])
 
 /** The whole opening, in seconds. */
 const OPEN = 3
+
+/**
+ * How much the assembly must shrink for all three panels to fit.
+ *
+ * Shut, the card measures the map alone; open, the two covers sit outside
+ * it and the whole thing is twice as wide. Anything narrower than that has
+ * to scale, so this is measured against the real viewport rather than
+ * guessed at a breakpoint.
+ */
+function openScale(card: HTMLElement): number {
+  const w = card.getBoundingClientRect().width
+  if (w === 0) return 1
+  return Math.min(1, (window.innerWidth * 0.94) / (w * 2))
+}
 
 /** Each cover leaves at a slightly different moment. */
 const SLIDE_DUR = 2.3
@@ -25,10 +40,10 @@ interface CardUnfoldProps {
  * The card that greets you.
  *
  * Shut, it is two equal framed panels meeting at the seam, with a wax seal
- * pressed over the join. Breaking the seal draws the two covers off to
- * either side, the way a pair of doors is slid rather than swung, and
- * leaves the map standing whole. There is no dismiss control — once it is
- * open, scrolling carries you into the page.
+ * pressed over the join. Breaking the seal draws the two covers apart —
+ * slid, not swung — until they come to rest flanking the map, and what is
+ * left standing is the whole invitation, all three panels of it. There is
+ * no dismiss control: once it is open, scrolling carries you into the page.
  */
 export function CardUnfold({ onOpen }: CardUnfoldProps) {
   const reduced = useReducedMotion()
@@ -49,10 +64,15 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
 
     const leftEl = left.current
     const rightEl = right.current
-    if (!leftEl || !rightEl) return
+    const cardEl = card.current
+    if (!leftEl || !rightEl || !cardEl) return
 
     if (reduced) {
-      gsap.set([leftEl, rightEl, seal.current], { autoAlpha: 0 })
+      // The same finished state, arrived at rather than performed.
+      gsap.set(seal.current, { autoAlpha: 0 })
+      gsap.set(leftEl, { xPercent: -100 })
+      gsap.set(rightEl, { xPercent: 100 })
+      gsap.set(cardEl, { scale: openScale(cardEl) })
       gsap.to(hint.current, { opacity: 0.8, duration: 0.4 })
       onOpen()
       return
@@ -69,29 +89,21 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
     tl.to(seal.current, { scale: 1.16, duration: 0.16, ease: 'power2.out' }, 0)
       .to(seal.current, { scale: 0.82, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, 0.16)
 
-    /* Each cover is drawn off its own side. A little over its own width, so
-       it is clear of the frame before it stops, and the left leads by a
-       seventh of a second — released together they read as a mechanism
-       rather than as two hands. */
-    tl.to(leftEl, { xPercent: -112, duration: SLIDE_DUR, ease: 'power2.inOut' }, LEAD_LEFT)
-      .to(rightEl, { xPercent: 112, duration: SLIDE_DUR, ease: 'power2.inOut' }, LEAD_RIGHT)
+    /* Each cover is drawn aside by exactly its own width, which lands it
+       flush against the map rather than off the card. They stay: what the
+       opening reveals is the whole invitation, all three panels of it, not
+       the middle one on its own.
 
-    /* They dissolve while still travelling, so it reads as one movement.
-       Timed from measurement rather than by eye: on a cubic ease the first
-       half-second of the slide moves the covers three pixels, which looks
-       like nothing happening, and holding the fade until the travel ended
-       turned one gesture into two. */
-    tl.to([leftEl, rightEl], { opacity: 0, duration: 0.95, ease: 'power1.in' }, LEAD_RIGHT + SLIDE_DUR * 0.52)
+       The left leads by a seventh of a second — released together they read
+       as a mechanism rather than as two hands. */
+    tl.to(leftEl, { xPercent: -100, duration: SLIDE_DUR, ease: 'power2.inOut' }, LEAD_LEFT)
+      .to(rightEl, { xPercent: 100, duration: SLIDE_DUR, ease: 'power2.inOut' }, LEAD_RIGHT)
 
-    /* The map settles rather than pushing in. What is wanted at the end is
-       the whole picture, not a detail of it, so the move is small and it
-       finishes at its full size. */
-    tl.fromTo(
-      card.current,
-      { scale: 0.965 },
-      { scale: 1, duration: OPEN - 0.5, ease: 'power2.out' },
-      0.5,
-    )
+    /* Open, the spread is twice as wide as the shut card, so it has to be
+       drawn back to fit. Measured rather than assumed: at a laptop size it
+       already fits and nothing moves, while on a phone it has to come down
+       to about half. */
+    tl.to(cardEl, { scale: openScale(cardEl), duration: SLIDE_DUR, ease: 'power2.inOut' }, LEAD_LEFT)
 
     tl.call(onOpen, undefined, OPEN)
     tl.to(hint.current, { opacity: 0.8, duration: 0.7 }, OPEN - 0.4)
@@ -131,7 +143,7 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
           <div className="panel panel-map">
             <InkLayer
               name="map"
-              alt="Harta weekendului: vineri la Cetatea Saschiz, sâmbătă la Viscri 9, duminică la Bike Check-Inn"
+              alt={T.intro.altMap}
               sizes="(max-width: 720px) 86vw, min(52vw, 62vh)"
               priority
             />
@@ -142,7 +154,7 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
             <div className="shutter-face">
               <InkLayer
                 name="cover-left"
-                alt="Casa Tanase — noi doi, va chemam pe voi, pe colinele Transilvaniei"
+                alt={T.intro.altCoverLeft}
                 sizes="(max-width: 720px) 43vw, min(26vw, 31vh)"
                 priority
               />
@@ -154,7 +166,7 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
             <div className="shutter-face">
               <InkLayer
                 name="cover-right"
-                alt="Cele mai frumoase ture sunt cele pe care le facem impreuna cu voi — transport, cazare si dress code"
+                alt={T.intro.altCoverRight}
                 sizes="(max-width: 720px) 43vw, min(26vw, 31vh)"
                 priority
               />
@@ -169,7 +181,7 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
             className="wax-seal"
             ref={seal}
             onClick={open}
-            aria-label="Rupe sigiliul și deschide invitația"
+            aria-label={T.intro.seal}
           >
             <WaxSeal />
           </button>
@@ -177,7 +189,7 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
       </div>
 
       <div className="scroll-hint" ref={hint} aria-hidden>
-        <span className="caps caps-wide">Coboară</span>
+        <span className="caps caps-wide">{T.intro.scroll}</span>
         <span className="scroll-hint-rule" />
       </div>
     </div>

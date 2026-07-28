@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Milestone } from '../Ornament'
 import { WAYPOINT_ATTR } from '../RouteLine/RouteLine'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { T } from '../../copy'
 import './Section.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -51,7 +52,7 @@ export function Section({ id, stop, title, side = 'center', children }: SectionP
   return (
     <section id={id} ref={root} className="section" data-side={side}>
       <div className="section-stone" {...{ [WAYPOINT_ATTR]: side }}>
-        <Milestone n={stop} label={`Popasul ${stop}: ${title}`} />
+        <Milestone n={stop} label={T.stopLabel(stop, title)} />
       </div>
 
       <div className="section-body">

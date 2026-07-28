@@ -9,6 +9,7 @@ import { CompassStar, Divider, Rosette } from './components/Ornament'
 import { InkLayer } from './components/Illustration/InkLayer'
 import { useLenis } from './hooks/useLenis'
 import { useReducedMotion } from './hooks/useReducedMotion'
+import { T } from './copy'
 import './styles/page.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -22,6 +23,17 @@ export function App() {
   useLenis(open)
 
   const onOpen = useCallback(() => setOpen(true), [])
+
+  /* The document's own language and metadata. These live in index.html for
+     Romanian, which is what a crawler or a link preview sees first; on /en
+     the same markup is served, so they are corrected here. */
+  useEffect(() => {
+    document.documentElement.lang = T.htmlLang
+    document.title = T.title
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute('content', T.description)
+  }, [])
 
   /* A real lock while the card is shut. Withholding the smooth-scroll
      instance is not enough on its own — native scrolling still works, so
@@ -111,156 +123,73 @@ export function App() {
         <RouteLine />
 
         <header className="masthead">
-          <p className="caps caps-wide masthead-kicker">Pe colinele Transilvaniei</p>
+          <p className="caps caps-wide masthead-kicker">{T.masthead.kicker}</p>
           <h1 className="masthead-name">
-            Noi doi, <span className="amp">vă chemăm</span> pe voi
+            {T.masthead.nameBefore} <span className="amp">{T.masthead.nameAccent}</span>{' '}
+            {T.masthead.nameAfter}
           </h1>
           <p className="caps masthead-dates">
-            04 <span className="dot">·</span> 05 <span className="dot">·</span> 06 septembrie 2026
+            04 <span className="dot">·</span> 05 <span className="dot">·</span> 06{' '}
+            {T.masthead.dates}
           </p>
           <CompassStar className="masthead-star" />
         </header>
 
         <main>
-          <Section id="povestea" stop="01" title="Casa Tănase" side="left">
-            <p data-reveal>
-              Ne-am cunoscut la cabinet, nu pe biciclete, însă timpul liber și
-              vacanțele ne-au fost facilitate de biciclete încă din august 2021. De
-              atunci ne-am vândut mașina și nu prea am mai coborât de pe ele. Am pedalat
-              prin destule locuri, dar pe colinele dintre Saschiz și Viscri ne-am tot
-              întors — pentru drumurile de pământ care nu duc nicăieri anume, pentru
-              liniștea de la amiază, dar mai ales pentru oamenii care însuflețesc și
-              îngrijesc această bucată din Transilvania. Îi veți cunoaște și voi pe o
-              parte dintre ei.
-            </p>
-            <p data-reveal>
-              Ne căsătorim aici, în septembrie. Nu într-o zi, ci în trei — pentru că
-              drumul până la noi e lung și ar fi păcat să-l faceți degeaba.
-            </p>
+          <Section id="povestea" stop="01" title={T.story.title} side="left">
+            {T.story.paragraphs.map((text) => (
+              <p key={text.slice(0, 24)} data-reveal>
+                {text}
+              </p>
+            ))}
 
             <div className="figure figure-plain" data-reveal>
               <InkLayer
                 name="tandem"
-                alt="Cei doi miri pe tandem, sub stema Casei Tănase"
+                alt={T.story.altEmblem}
                 sizes="(max-width: 720px) 70vw, 22rem"
               />
             </div>
           </Section>
 
-          <Section id="programul" stop="02" title="Trei zile, trei sate săsești" side="right">
+          <Section id="programul" stop="02" title={T.programme.title} side="right">
             <Programme />
           </Section>
 
-          <Section id="locurile" stop="03" title="Locuri" side="left">
-            <p data-reveal>
-              Trei popasuri, trei zile diferite în trei sate săsești vecine. Pe toate le
-              îndrăgim la fel de tare — nu ne-am putut decide la unul singur!
-            </p>
+          <Section id="locurile" stop="03" title={T.places.title} side="left">
+            <p data-reveal>{T.places.intro}</p>
 
             <div className="places" data-reveal>
-              <figure className="place">
-                <InkLayer
-                  name="cetatea"
-                  alt="Cetatea țărănească din Saschiz, văzută de sus"
-                  sizes="(max-width: 720px) 80vw, 17rem"
-                />
-                <figcaption>
-                  <span className="caps place-name">Saschiz</span>
-                  <span className="place-note">
-                    Veți fi aduși la Castle View, o casă săsească de la 1816, de unde vom
-                    porni pe deal la Cetatea Țărănească Saschiz. Acolo spunem „DA”
-                    răspicat și revenim la Castle View pentru o cină tradițională și o
-                    petrecere de warm-up.
-                  </span>
-                </figcaption>
-              </figure>
-
-              <figure className="place">
-                <InkLayer
-                  name="casa-viscri"
-                  alt="Casa săsească din Viscri de unde pornește alaiul"
-                  sizes="(max-width: 720px) 80vw, 17rem"
-                />
-                <figcaption>
-                  <span className="caps place-name">Viscri</span>
-                  <span className="place-note">
-                    Pornim de la Viscri 9, o casă săsească la cotitură pe ulița
-                    principală. La Biserica Fortificată din Viscri ne vom împreuna
-                    destinele și în temei spiritual. Apoi, cu tot alaiul, ajungem la
-                    Viscri 125 unde — sperăm noi! — petrecem până dimineața.
-                  </span>
-                </figcaption>
-              </figure>
-
-              <figure className="place">
-                <InkLayer
-                  name="bike-inn"
-                  alt="Bike Checkinn, punctul de plecare pentru tura de duminică"
-                  sizes="(max-width: 720px) 80vw, 17rem"
-                />
-                <figcaption>
-                  <span className="caps place-name">Bunești</span>
-                  <span className="place-note">
-                    A treia zi, după micul dejun, ne întâlnim la Bike Checkinn să ne
-                    dregem cu cafea și limonade. Pe la unu-două dăm o tură cu bicicleta,
-                    cât ne țin pedalele. Revenim la Bike Checkinn să ne îndopăm cu
-                    gustări locale și, spre seară, încercuim un foc de tabără pe fundal
-                    de muzică folk.
-                  </span>
-                </figcaption>
-              </figure>
+              {T.places.items.map((place, i) => (
+                <figure key={place.name} className="place">
+                  <InkLayer
+                    name={(['cetatea', 'casa-viscri', 'bike-inn'] as const)[i]!}
+                    alt={T.places.alts[i]!}
+                    sizes="(max-width: 720px) 80vw, 17rem"
+                  />
+                  <figcaption>
+                    <span className="caps place-name">{place.name}</span>
+                    <span className="place-note">{place.note}</span>
+                  </figcaption>
+                </figure>
+              ))}
             </div>
           </Section>
 
-          <Section id="detalii" stop="04" title="Ce e bine să știți" side="right">
+          <Section id="detalii" stop="04" title={T.details.title} side="right">
             <dl className="facts" data-reveal>
-              <div>
-                <dt className="caps">Mașina rămâne la cazare</dt>
-                <dd>
-                  Transportul îl asigurăm noi tot weekendul, între cazare și fiecare
-                  popas. Inclusiv bicicletele — nu trebuie să veniți cu ale voastre.
-                </dd>
-              </div>
-              <div>
-                <dt className="caps">Cazările sunt deja rezervate</dt>
-                <dd>
-                  Nu trebuie să căutați nimic. Spuneți-ne doar câte nopți vreți să
-                  rămâneți și ne ocupăm de rest. Micul dejun va fi inclus sau opțional.
-                </dd>
-              </div>
-              <div>
-                <dt className="caps">Veniți cu copiii</dt>
-                <dd>
-                  Fiecare activitate din weekend e gândită să îi includă și pe ei.
-                  Curțile sunt mari și avem pe cine ne baza să îi distreze.
-                </dd>
-              </div>
-              <div>
-                <dt className="caps">Dress code: „Albastru de Saschiz”</dt>
-                <dd>
-                  Albastrul de pe ceramica de Saschiz, în ce nuanță vă place. Purtați
-                  ceva ușor și comod — se merge pe iarbă și pe piatră, iar seara, în
-                  septembrie, dealurile își aduc aminte că e toamnă.
-                </dd>
-              </div>
-              <div>
-                <dt className="caps">Speech sau toast</dt>
-                <dd>
-                  Invitație deschisă pentru a împărtăși o poveste, un sfat, o glumă sau o
-                  poză amuzantă cu noi. Cei fără frică de dentist sau de vorbit în public,
-                  anunțați-o pe Cătălina Popoviciu în prealabil.
-                </dd>
-              </div>
-              <div>
-                <dt className="caps">Restricții alimentare sau muzicale?</dt>
-                <dd>Let us know.</dd>
-              </div>
+              {T.details.facts.map((fact) => (
+                <div key={fact.term}>
+                  <dt className="caps">{fact.term}</dt>
+                  <dd>{fact.detail}</dd>
+                </div>
+              ))}
             </dl>
 
             <div className="figure figure-plain" data-reveal>
               <InkLayer
                 name="indicatoare"
-                alt="Indicator rutier spre Viscri, Saschiz și Bunești"
+                alt={T.details.altSignpost}
                 sizes="(max-width: 720px) 55vw, 13rem"
               />
             </div>
@@ -270,14 +199,14 @@ export function App() {
         <footer className="colophon">
           <InkLayer
             name="cuplu-camp"
-            alt="Cei doi miri pe un câmp de păpădii, cu bicicleta alături"
+            alt={T.colophon.altCouple}
             sizes="(max-width: 720px) 78vw, 26rem"
             className="colophon-couple"
           />
 
           <Divider className="colophon-rule" />
 
-          <p className="caps caps-wide colophon-place">Saschiz · Viscri · Bunești</p>
+          <p className="caps caps-wide colophon-place">{T.colophon.villages}</p>
 
           <Rosette className="colophon-rosette" />
         </footer>
