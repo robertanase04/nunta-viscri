@@ -81,22 +81,29 @@ const REGIONS = {
      frames. The margin reads as paper because the stamp composites over it. */
   'cover-right': { left: 1584, top: 51, width: 360, height: 1260, padTo: 461 },
 
-  /* The map. It starts at 547 — the first column of drawing after the fold
-     rule — not at 568: cropping there sliced the left flank off the
-     fortress, which is drawn hard up against the fold. */
-  'map': { left: 547, top: 18, width: 979, height: 1298 },
+  /* The map, taken between its own border rules — full-height columns of
+     ink at 569 and 1527, distinct from the fold rule at 545. Cropping to
+     547 pulled that rule into the picture, which then showed up as a stray
+     line down the left edge of the map and of every vignette lifted from
+     it. There are no matching rules top or bottom; the drawing bleeds. */
+  'map': { left: 571, top: 18, width: 956, height: 1298 },
 
-  /* Vignettes lifted off the map, read from a coordinate grid. */
-  'cetatea': { left: 588, top: 85, width: 285, height: 255 },
-  'casa-viscri': { left: 1025, top: 488, width: 420, height: 268 },
-  'bike-inn': { left: 572, top: 938, width: 302, height: 252 },
-  'satul': { left: 1292, top: 1126, width: 242, height: 155 },
+  /* Vignettes lifted off the map. Every one of these was cropped too
+     tight on the first pass — the fortress lost its right wall, the house
+     its left gable, the halt everything below the sign. Each is now taken
+     to the edge of its own drawing with a little paper left around it,
+     because these are shown whole on the page rather than as thumbnails
+     that can be trimmed. */
+  'cetatea': { left: 573, top: 52, width: 327, height: 300 },
+  'casa-viscri': { left: 1004, top: 468, width: 458, height: 324 },
+  'bike-inn': { left: 573, top: 880, width: 327, height: 436 },
+  'satul': { left: 1298, top: 1126, width: 236, height: 158 },
 
   /* The red tandem that closes the map, kept for the page footer. */
   'tandem-rosu': { left: 1146, top: 1196, width: 98, height: 90 },
 
   /* And off the two cover panels. */
-  'tandem': { left: 88, top: 330, width: 372, height: 362 },
+  'tandem': { left: 74, top: 300, width: 400, height: 462 },
   'indicatoare': { left: 1596, top: 978, width: 198, height: 172 },
   'cuplu-inima': { left: 1628, top: 172, width: 305, height: 285 },
 }

@@ -43,14 +43,14 @@
   /* Sized off the map, which is what the shut cover measures and what is
      left standing at the end. Held back from the viewport edges so the
      push-in has somewhere to go. */
-  width: min(88vw, 78vh * 0.7542);
+  width: min(88vw, 78vh * 0.7366);
   perspective: 2200px;
   perspective-origin: 50% 46%;
 }
 
 .card {
   position: relative;
-  aspect-ratio: 979 / 1298;
+  aspect-ratio: 956 / 1298;
   transform-style: preserve-3d;
 }
 
@@ -289,7 +289,7 @@
 
 @media (max-width: 720px) {
   .card-viewport {
-    width: min(90vw, 72vh * 0.7542);
+    width: min(90vw, 72vh * 0.7366);
   }
   .wax-seal {
     width: clamp(62px, 17%, 92px);

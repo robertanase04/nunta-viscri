@@ -18,9 +18,9 @@
     ]
   },
   "map": {
-    "width": 979,
+    "width": 956,
     "height": 1298,
-    "aspect": 0.7542,
+    "aspect": 0.7365,
     "widths": [
       480,
       720,
@@ -29,9 +29,9 @@
     ]
   },
   "cetatea": {
-    "width": 285,
-    "height": 255,
-    "aspect": 1.1176,
+    "width": 327,
+    "height": 300,
+    "aspect": 1.09,
     "widths": [
       220,
       360,
@@ -39,9 +39,9 @@
     ]
   },
   "casa-viscri": {
-    "width": 420,
-    "height": 268,
-    "aspect": 1.5672,
+    "width": 458,
+    "height": 324,
+    "aspect": 1.4136,
     "widths": [
       220,
       360,
@@ -50,9 +50,9 @@
     ]
   },
   "bike-inn": {
-    "width": 302,
-    "height": 252,
-    "aspect": 1.1984,
+    "width": 327,
+    "height": 436,
+    "aspect": 0.75,
     "widths": [
       220,
       360,
@@ -60,9 +60,9 @@
     ]
   },
   "satul": {
-    "width": 242,
-    "height": 155,
-    "aspect": 1.5613,
+    "width": 236,
+    "height": 158,
+    "aspect": 1.4937,
     "widths": [
       220,
       360
@@ -77,9 +77,9 @@
     ]
   },
   "tandem": {
-    "width": 372,
-    "height": 362,
-    "aspect": 1.0276,
+    "width": 400,
+    "height": 462,
+    "aspect": 0.8658,
     "widths": [
       220,
       360,
