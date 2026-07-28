@@ -15,6 +15,10 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: auto; /* Lenis owns scrolling */
+    /* The scrollbar's width is reserved from the start, so locking the page
+       behind the shut invitation does not shift everything sideways when
+       the lock lifts. */
+    scrollbar-gutter: stable;
   }
 
   body {

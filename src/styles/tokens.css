@@ -1,28 +1,34 @@
 /* ------------------------------------------------------------------
-   Design tokens — extracted by sampling assets/source/invitation-hi.jpeg,
-   not chosen by eye. See scripts/extract-palette.py for the measurement.
+   Design tokens — sampled from assets/source/invitation-v2.png, not
+   chosen by eye.
 
-   The engraving uses a SINGLE ink. Everything that reads lighter in the
-   original is line density, not diluted pigment — so the lighter values
-   below are opacity steps of that one ink, never separate colours.
+   Unlike the first invitation this one is printed in two colours: a
+   saturated cobalt for everything, and a red reserved for the couple's
+   name, the hearts and the hour of each day. The red covers 1.2% of the
+   plate. That ratio is the whole point of it, so it is a token you have
+   to reach for deliberately — never a hover state, never a border.
    ------------------------------------------------------------------ */
 
 :root {
-  /* --- ink: one colour, four densities --- */
-  --ink-deep: #08192d;
-  --ink: #1e2a36;
-  --ink-soft: rgb(30 42 54 / 0.62);
-  --ink-ghost: rgb(30 42 54 / 0.28);
-  --ink-faint: rgb(30 42 54 / 0.12);
+  /* --- the blue --- */
+  --ink-deep: #1e3d73;
+  --ink: #2d5599;
+  --ink-soft: rgb(45 85 153 / 0.72);
+  --ink-ghost: rgb(45 85 153 / 0.34);
+  --ink-faint: rgb(45 85 153 / 0.15);
+
+  /* --- the red, used as sparingly as the plate uses it --- */
+  --accent: #a5202a;
+  --accent-deep: #8d1a22;
 
   /* --- paper --- */
-  --paper: #f0e6dd;
-  --paper-warm: #eae1d8;
-  --paper-deep: #e0d7ce;
-  --paper-shadow: #cfc4b8;
+  --paper: #f4ebe0;
+  --paper-warm: #ece1d3;
+  --paper-deep: #e0d3c2;
+  --paper-shadow: #c9bba7;
 
   /* --- the pale face of a faceted ornament --- */
-  --star-facet: #ccd1d7;
+  --star-facet: #cfdcee;
 
   /* --- type --- */
   --font-display: 'Cormorant Garamond', 'Georgia', serif;
@@ -66,7 +72,7 @@
    preference only by warming the paper slightly to cut glare at night. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #e9dfd5;
-    --paper-warm: #e2d8ce;
+    --paper: #ece2d6;
+    --paper-warm: #e3d8c9;
   }
 }

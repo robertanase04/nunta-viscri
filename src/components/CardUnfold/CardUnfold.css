@@ -1,11 +1,15 @@
 /* ------------------------------------------------------------------
    The opening sequence.
 
-   Geometry note: the invitation is a gate-fold. The two side panels
-   measure 444 and 304 against a 738 centre — they sum to 748, so they
-   meet over the middle when shut. Every width here is that measurement
-   expressed as a fraction, which is why the panels close flush instead
-   of overlapping by a few pixels.
+   The two bordered side panels are the front of the card: shut, they sit
+   edge to edge and the map is behind them. They open outward like
+   shutters, their blank insides turning away, and the map is left alone
+   on screen.
+
+   Their printed widths are not equal — 517 against 416 against a 977
+   centre — so the closed cover is split 55.4 / 44.6 rather than in half.
+   Assuming symmetry here leaves a seam that drifts off centre as the
+   viewport changes.
    ------------------------------------------------------------------ */
 
 .stage {
@@ -26,167 +30,172 @@
   pointer-events: none;
   background: radial-gradient(
     120% 90% at 30% 8%,
-    rgb(255 255 255 / 0.18) 0%,
-    transparent 48%,
-    rgb(30 42 54 / 0.2) 100%
+    rgb(255 255 255 / 0.2) 0%,
+    transparent 46%,
+    rgb(30 60 110 / 0.18) 100%
   );
-}
-
-.stage[data-done='true'] {
-  pointer-events: none;
 }
 
 /* --- the card ---------------------------------------------------- */
 
 .card-viewport {
   position: relative;
-  width: min(94vw, 78vh * 1.451);
-  perspective: 2400px;
-  perspective-origin: 50% 42%;
+  /* Sized off the centre panel, which is what the shut cover measures and
+     what is left standing at the end. */
+  width: min(92vw, 84vh * 0.7329);
+  perspective: 2200px;
+  perspective-origin: 50% 46%;
 }
 
 .card {
   position: relative;
-  display: flex;
-  align-items: stretch;
+  aspect-ratio: 977 / 1333;
   transform-style: preserve-3d;
-  /* The centre panel's midpoint sits at 54.7% of the open card, not 50%.
-     Closed, the card is nudged so the visible face is optically centred;
-     the timeline returns this to zero as it opens. */
-  transform: translateX(var(--card-offset, -4.7%)) scale(var(--card-scale, 1));
 }
 
-.panel {
-  position: relative;
-  transform-style: preserve-3d;
-  flex: 0 0 auto;
+/* The map, sitting behind the cover the whole time. */
+.card-centre {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  box-shadow: var(--lift-lg);
+  overflow: hidden;
 }
 
-/* Widths as measured off the source, normalised to the open card. */
-.panel-left {
-  width: 29.88%;
-  transform-origin: right center;
+.card-centre img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.panel-center {
-  width: 49.66%;
-  /* Held a hair behind the flaps. Folded shut they land within two degrees
-     of the centre panel's plane, and coplanar surfaces in a preserve-3d
-     context sort arbitrarily — without this the closed card showed its
-     inside face, with the flaps stacked behind the thing they cover. */
-  transform: translateZ(-2px);
+
+/* --- the two shutters -------------------------------------------- */
+
+.shutter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform-style: preserve-3d;
+  /* The turn and the 1px lift clear of the map are both written by GSAP.
+     Driving them from CSS custom properties looked tidier and did not
+     work: an unregistered custom property has no computed value to read,
+     so there was nothing to interpolate from and the shutters simply
+     jumped. */
 }
-.panel-right {
-  width: 20.46%;
+
+.shutter-left {
+  left: 0;
+  width: 55.4%;
   transform-origin: left center;
 }
 
-.panel-face {
+.shutter-right {
+  right: 0;
+  width: 44.6%;
+  transform-origin: right center;
+}
+
+.shutter-face {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
   background: var(--paper);
-  box-shadow: var(--deboss);
+  overflow: hidden;
 }
 
-.panel-face img {
+.shutter-face img {
   width: 100%;
   height: 100%;
+  /* A 5% horizontal stretch, from fitting two unequal flaps to one cover.
+     Invisible on a drawn border; a letterboxed gap would not be. */
   object-fit: fill;
 }
 
-/* The reverse of a folded flap: blank stock with a single rosette. */
-.panel-face-back {
+/* The inside of the cover is blank stock — nothing is printed there. */
+.shutter-back {
   transform: rotateY(180deg);
-  display: grid;
-  place-items: center;
   background: var(--paper-warm);
+  box-shadow: inset 0 0 60px rgb(30 60 110 / 0.07);
 }
 
-/* Sized against the card, not against the flap. The two flaps are 30% and
-   20% of the card, so a percentage width here would print one rosette half
-   again as large as the other on a face that is meant to look uniform. */
-.panel-face-back svg {
-  width: clamp(28px, 4.2vw, 54px);
-  opacity: 0.45;
-  color: var(--ink);
+/* The seam down the middle, and the shading of a closed cover. */
+.shutter-left .shutter-front {
+  box-shadow: inset -14px 0 22px -14px rgb(30 60 110 / 0.3);
+}
+.shutter-right .shutter-front {
+  box-shadow: inset 14px 0 22px -14px rgb(30 60 110 / 0.3);
 }
 
-/* The seam where the two flaps meet, plus the soft fall-off of a sheet
-   lying over another. Without it the shut card is a blank rectangle and
-   reads as a loading state rather than as a closed invitation. */
-.panel-left .panel-face-back {
-  background-image: linear-gradient(270deg, rgb(30 42 54 / 0.14) 0%, transparent 22%);
-}
-
-.panel-right .panel-face-back {
-  background-image: linear-gradient(90deg, rgb(30 42 54 / 0.14) 0%, transparent 26%);
-}
-
-/* The centre panel has no reverse — it never turns. */
-.panel-center .panel-face {
-  position: relative;
-}
-
-/* --- fold shading ------------------------------------------------
-
-   Without this the panels read as two rectangles pivoting, not as paper.
-   Opacity is driven from the timeline in step with the fold angle: full
-   while the flap is edge-on, gone once it lies flat.
-   ----------------------------------------------------------------- */
-
-.fold-shade {
+/* Shading that deepens as each shutter turns away from the light. */
+.shutter-shade {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: var(--fold-shade, 1);
+  background: rgb(20 45 90 / 0.5);
+  opacity: 0;
 }
 
-.panel-left .fold-shade {
-  background: linear-gradient(90deg, rgb(30 42 54 / 0.42) 0%, rgb(30 42 54 / 0.06) 62%, transparent 100%);
-}
+/* --- the button --------------------------------------------------- */
 
-.panel-right .fold-shade {
-  background: linear-gradient(270deg, rgb(30 42 54 / 0.42) 0%, rgb(30 42 54 / 0.06) 62%, transparent 100%);
-}
-
-/* The crease itself: a hard, narrow darkening at each hinge. */
-.panel-center::before,
-.panel-center::after {
-  content: '';
+.open-button {
+  /* Sibling of the card, not a child: inside a preserve-3d context stacking
+     is decided by depth rather than z-index, so a button at z 0 was hidden
+     behind shutters standing a pixel proud of the map. */
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 14px;
-  pointer-events: none;
-  opacity: var(--crease, 0);
-}
-.panel-center::before {
-  left: 0;
-  background: linear-gradient(90deg, rgb(30 42 54 / 0.3), transparent);
-}
-.panel-center::after {
-  right: 0;
-  background: linear-gradient(270deg, rgb(30 42 54 / 0.3), transparent);
-}
-
-/* --- cast shadow -------------------------------------------------
-
-   A separate blurred element rather than a filter on the card: a
-   drop-shadow filter re-rasterises the whole subtree every frame, and
-   the card is the most expensive thing on screen while it is moving.
-   ----------------------------------------------------------------- */
-
-.card-shadow {
-  position: absolute;
+  top: 50%;
   left: 50%;
-  bottom: -4%;
-  width: var(--shadow-width, 52%);
-  height: 6%;
-  transform: translateX(-50%);
-  background: radial-gradient(closest-side at 50% 50%, rgb(30 42 54 / 0.34), transparent 72%);
-  filter: blur(18px);
-  opacity: var(--shadow-opacity, 0.5);
-  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: clamp(1rem, 2.2vw, 1.5rem) clamp(1.5rem, 3.4vw, 2.4rem);
+  color: var(--ink-deep);
+  background: rgb(244 235 224 / 0.62);
+  border: 1px solid rgb(45 85 153 / 0.3);
+  border-radius: 3px;
+  cursor: pointer;
+  backdrop-filter: blur(7px) saturate(1.1);
+  transition:
+    background var(--dur-fast) var(--ease-inout),
+    border-color var(--dur-fast) var(--ease-inout),
+    transform var(--dur-fast) var(--ease-paper);
+}
+
+.open-button:hover,
+.open-button:focus-visible {
+  background: rgb(244 235 224 / 0.82);
+  border-color: rgb(45 85 153 / 0.55);
+  transform: translate(-50%, -50%) scale(1.03);
+}
+
+.open-button svg {
+  width: clamp(22px, 2.6vw, 30px);
+  color: var(--ink);
+}
+
+.open-button-label {
+  white-space: nowrap;
+}
+
+/* A slow breath so the card reads as waiting for a hand, not as finished. */
+@media (prefers-reduced-motion: no-preference) {
+  .open-button {
+    animation: waiting 3.4s var(--ease-inout) infinite;
+  }
+  .open-button:hover,
+  .open-button:focus-visible {
+    animation: none;
+  }
+}
+
+@keyframes waiting {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(45 85 153 / 0.16);
+  }
+  55% {
+    box-shadow: 0 0 0 14px rgb(45 85 153 / 0);
+  }
 }
 
 /* --- preloader ---------------------------------------------------- */
@@ -196,9 +205,8 @@
   inset: 0;
   display: grid;
   place-items: center;
-  gap: 1.5rem;
   background: var(--paper-deep);
-  z-index: 2;
+  z-index: 6;
 }
 
 .preloader-inner {
@@ -209,7 +217,7 @@
 }
 
 .preloader-star {
-  width: clamp(56px, 9vw, 88px);
+  width: clamp(56px, 9vw, 84px);
   animation: star-turn 5.5s linear infinite;
 }
 
@@ -219,9 +227,6 @@
   }
 }
 
-/* Progress is shown by how much of the star has been inked in, so the
-   preloader is the same ornament the site is built from rather than a
-   progress bar borrowed from somewhere else. */
 .preloader-star .ornament-facet-dark {
   clip-path: inset(calc(100% - var(--progress, 0) * 100%) 0 0 0);
 }
@@ -231,87 +236,69 @@
   opacity: 0.55;
 }
 
-/* --- controls ----------------------------------------------------- */
+/* --- the handover ------------------------------------------------
 
-.skip {
-  position: absolute;
-  right: max(1.25rem, env(safe-area-inset-right));
-  bottom: max(1.25rem, env(safe-area-inset-bottom));
-  z-index: 4;
-  padding: 0.7rem 1.15rem;
-  color: var(--ink);
-  background: rgb(240 230 221 / 0.72);
-  border: 1px solid rgb(30 42 54 / 0.22);
-  border-radius: 2px;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  transition: background var(--dur-fast), border-color var(--dur-fast);
-}
+   Once the card is open the stage stops being a barrier: it keeps
+   showing the map, but scrolling passes straight through it to the page
+   underneath, which is what replaces the old dismiss button.
+   ----------------------------------------------------------------- */
 
-.skip:hover {
-  background: var(--paper);
-  border-color: rgb(30 42 54 / 0.45);
+.stage[data-open='true'] {
+  pointer-events: none;
 }
 
 .scroll-hint {
   position: absolute;
   left: 50%;
-  bottom: 2.2rem;
+  bottom: clamp(1.4rem, 4vh, 2.6rem);
   transform: translateX(-50%);
   display: grid;
   justify-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
   color: var(--ink);
   opacity: 0;
 }
 
 .scroll-hint-rule {
   width: 1px;
-  height: 46px;
+  height: clamp(30px, 5vh, 46px);
   background: linear-gradient(var(--ink), transparent);
 }
 
-/* --- reduced motion ----------------------------------------------
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-hint-rule {
+    animation: hint-drop 2.4s var(--ease-inout) infinite;
+    transform-origin: top;
+  }
+}
 
-   Not a global animation kill: the card is simply already open, and the
-   only thing that happens is a cross-fade. Everything below still works,
-   it just arrives instead of performing.
-   ----------------------------------------------------------------- */
+@keyframes hint-drop {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* --- reduced motion ----------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   .preloader-star {
     animation: none;
   }
-  .card {
-    transform: none;
-  }
-  .panel-left,
-  .panel-right {
-    transform: none !important;
-  }
 }
 
-/* --- narrow screens ----------------------------------------------
-
-   A gate-fold needs roughly 1.45:1 to open into. At 390px there is no
-   such room, so the side panels are dropped from the card entirely and
-   the centre panel arrives on its own through an iris. Their content is
-   not lost — it becomes the first two sections of the page.
-   ----------------------------------------------------------------- */
+/* --- narrow screens ----------------------------------------------- */
 
 @media (max-width: 720px) {
   .card-viewport {
-    width: min(84vw, 58vh * 0.72);
-    perspective: none;
+    width: min(86vw, 68vh * 0.7329);
   }
-  .panel-left,
-  .panel-right {
-    display: none;
-  }
-  .panel-center {
-    width: 100%;
-  }
-  .card {
-    transform: none;
+  .open-button {
+    padding: 0.9rem 1.35rem;
   }
 }

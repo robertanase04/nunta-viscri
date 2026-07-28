@@ -6,18 +6,41 @@
   overflow-x: clip;
 }
 
+/* --- the invitation, and getting past it ------------------------- */
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+/* The screen height you scroll through to leave the card behind. It is
+   empty on purpose: the card is fixed above it, and this is simply the
+   distance over which it lifts away. */
+.intro-spacer {
+  height: 100svh;
+}
+
+/* Until the card is open there is nothing below it to see, and nothing
+   below it should be announced either. */
+.page[data-open='false'] main,
+.page[data-open='false'] .masthead,
+.page[data-open='false'] .colophon {
+  visibility: hidden;
+}
+
 /* --- masthead ----------------------------------------------------- */
 
 .masthead {
   position: relative;
   z-index: 1;
-  min-height: 78vh;
+  min-height: 66vh;
   display: grid;
   align-content: center;
   justify-items: center;
   gap: 1.1rem;
   text-align: center;
-  padding: clamp(4rem, 12vh, 9rem) var(--gutter) clamp(3rem, 8vh, 6rem);
+  padding: clamp(3rem, 9vh, 7rem) var(--gutter) clamp(3rem, 8vh, 6rem);
 }
 
 .masthead-kicker {
@@ -25,30 +48,33 @@
 }
 
 .masthead-name {
-  font-size: var(--step-5);
+  font-size: clamp(2.4rem, 1.5rem + 4.4vw, 5.4rem);
   color: var(--ink-deep);
-  letter-spacing: -0.022em;
-  line-height: 0.94;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  max-width: 16ch;
 }
 
+/* The plate gives its red to the couple and to the hour of each day, and
+   to nothing else. This is the one place on the page that borrows it. */
 .masthead-name .amp {
+  color: var(--accent);
   font-style: italic;
-  font-weight: 400;
-  /* The ampersand is a piece of drawing, not a word; it sits smaller and
-     lighter so the two names carry the line. */
-  font-size: 0.62em;
-  color: var(--ink);
-  padding-inline: 0.06em;
 }
 
 .masthead-dates {
   color: var(--ink-soft);
 }
 
+.masthead-dates .dot {
+  color: var(--accent);
+  padding-inline: 0.15em;
+}
+
 .masthead-star {
-  width: clamp(26px, 3vw, 38px);
+  width: clamp(24px, 2.8vw, 34px);
   color: var(--ink);
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 }
 
 /* --- shared blocks ------------------------------------------------ */
@@ -56,7 +82,11 @@
 .figure {
   display: grid;
   gap: 0.7rem;
-  width: min(100%, 26rem);
+}
+
+.figure-plain {
+  width: min(100%, 22rem);
+  margin-top: 0.6rem;
 }
 
 .figure-caption {
@@ -65,18 +95,54 @@
 
 .facts {
   display: grid;
-  gap: 1.6rem;
+  gap: 1.5rem;
   margin: 0;
 }
 
 .facts dt {
   color: var(--ink-soft);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.3rem;
 }
 
 .facts dd {
   margin: 0;
-  max-width: var(--measure);
+}
+
+/* --- the three places --------------------------------------------- */
+
+.places {
+  display: grid;
+  gap: clamp(1.75rem, 3.5vw, 2.75rem);
+  margin-top: 0.5rem;
+}
+
+.place {
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+  align-items: start;
+  column-gap: clamp(1.1rem, 2.4vw, 1.9rem);
+}
+
+.place figcaption {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.place-name {
+  color: var(--ink-deep);
+}
+
+.place-note {
+  color: var(--ink-soft);
+  font-size: var(--step-0);
+}
+
+@media (max-width: 640px) {
+  .place {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* --- colophon ----------------------------------------------------- */
@@ -86,59 +152,33 @@
   z-index: 1;
   display: grid;
   justify-items: center;
-  gap: 1.6rem;
-  padding: clamp(5rem, 12vh, 9rem) var(--gutter) clamp(3rem, 7vh, 5rem);
+  gap: 1.5rem;
+  padding: clamp(4rem, 10vh, 7rem) var(--gutter) clamp(3rem, 7vh, 5rem);
   text-align: center;
 }
 
-.colophon-bird {
-  width: clamp(64px, 8vw, 96px);
-  color: var(--ink);
-  opacity: 0.8;
+.colophon-heart {
+  width: min(72vw, 19rem);
 }
 
 .colophon-rule {
-  width: min(100%, 17rem);
+  width: min(100%, 15rem);
   color: var(--ink);
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
-.colophon-quote {
-  margin: 0;
-  font-size: var(--step-2);
-  line-height: 1.4;
-  color: var(--ink-deep);
-  max-width: 30ch;
-}
-
-.colophon-hay {
-  width: min(60vw, 300px);
-  opacity: 0.85;
-  margin-top: 1rem;
+.colophon-village {
+  width: min(62vw, 15rem);
+  opacity: 0.9;
 }
 
 .colophon-place {
   color: var(--ink-soft);
 }
 
-.replay {
-  color: var(--ink-soft);
-  background: none;
-  border: 0;
-  border-bottom: 1px solid var(--ink-ghost);
-  padding: 0.3rem 0;
-  cursor: pointer;
-  transition: color var(--dur-fast), border-color var(--dur-fast);
-}
-
-.replay:hover {
-  color: var(--ink);
-  border-color: var(--ink);
-}
-
 .colophon-rosette {
-  width: 30px;
+  width: 28px;
   color: var(--ink);
   opacity: 0.5;
-  margin-top: 1rem;
+  margin-top: 0.6rem;
 }

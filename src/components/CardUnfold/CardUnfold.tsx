@@ -1,20 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { CompassStar, Rosette } from '../Ornament'
+import { CompassStar } from '../Ornament'
 import { criticalArtUrls, InkLayer } from '../Illustration/InkLayer'
 import { usePreloadAssets } from '../../hooks/usePreloadAssets'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import './CardUnfold.css'
 
-const CRITICAL = criticalArtUrls(['panel-center', 'panel-left', 'panel-right'])
-const SEEN_KEY = 'viscri:intro-seen'
+const CRITICAL = criticalArtUrls(['panel-left', 'panel-right', 'panel-center'])
 
 interface CardUnfoldProps {
-  onDone: () => void
+  /** Fires once the cover is open and the page below may be scrolled. */
+  onOpen: () => void
 }
 
-/** Whether to replay is the caller's decision — see `shouldPlayIntro`. */
-export function CardUnfold({ onDone }: CardUnfoldProps) {
+/**
+ * The card that greets you.
+ *
+ * Shut, it shows the two bordered panels that make up the front. Pressing
+ * the button on the seam swings them outward — their insides are blank,
+ * because nothing is printed there — and pushes in on the map behind. No
+ * dismiss button: once it is open, scrolling carries you into the page.
+ */
+export function CardUnfold({ onOpen }: CardUnfoldProps) {
   const reduced = useReducedMotion()
   const { progress, done: loaded } = usePreloadAssets(CRITICAL)
 
@@ -22,142 +29,85 @@ export function CardUnfold({ onDone }: CardUnfoldProps) {
   const card = useRef<HTMLDivElement>(null)
   const left = useRef<HTMLDivElement>(null)
   const right = useRef<HTMLDivElement>(null)
+  const button = useRef<HTMLButtonElement>(null)
   const hint = useRef<HTMLDivElement>(null)
-  const timeline = useRef<gsap.core.Timeline | null>(null)
 
-  const [finished, setFinished] = useState(false)
+  const [opened, setOpened] = useState(false)
 
-  /** Runs on skip, on completion, and on Escape — must be idempotent. */
-  const finish = useCallback(() => {
-    setFinished((already) => {
-      if (already) return true
-      timeline.current?.kill()
-      sessionStorage.setItem(SEEN_KEY, '1')
-      gsap.to(stage.current, {
-        autoAlpha: 0,
-        duration: 0.55,
-        ease: 'power2.inOut',
-        onComplete: onDone,
-      })
-      return true
+  const open = useCallback(() => {
+    if (opened) return
+    setOpened(true)
+
+    if (reduced) {
+      gsap.set([left.current, right.current], { autoAlpha: 0 })
+      gsap.set(button.current, { autoAlpha: 0 })
+      gsap.to(hint.current, { opacity: 0.8, duration: 0.4 })
+      onOpen()
+      return
+    }
+
+    const leftEl = left.current
+    const rightEl = right.current
+    if (!leftEl || !rightEl) return
+
+    const flaps = [leftEl, rightEl]
+    const leftShade = leftEl.querySelector('.shutter-shade')
+    const rightShade = rightEl.querySelector('.shutter-shade')
+    gsap.set(flaps, { willChange: 'transform' })
+
+    // A pixel of separation so the two shutters and the map never compete
+    // for depth order while turning.
+    gsap.set(flaps, { z: 1, transformPerspective: 2200 })
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        gsap.set(flaps, { clearProps: 'willChange' })
+        onOpen()
+      },
     })
-  }, [onDone])
 
+    // The button goes first and quickly — it must be out of the way before
+    // anything starts moving behind it.
+    // Opacity only. The button is centred with a translate in CSS, and
+    // handing GSAP a scale here would rewrite the whole transform and drop
+    // it back to the top-left corner on its way out.
+    tl.to(button.current, { autoAlpha: 0, duration: 0.28, ease: 'power2.in' }, 0)
+
+    // Both shutters swing out. The left one leads by 90ms: released
+    // together they read as a mechanism rather than as two hands.
+    tl.to(leftEl, { rotationY: -155, duration: 1.5, ease: 'power3.inOut' }, 0.1)
+      .to(rightEl, { rotationY: 155, duration: 1.5, ease: 'power3.inOut' }, 0.19)
+
+    // Each face darkens as it turns away from the light, then the whole
+    // flap fades as it leaves — otherwise the covers hang around edge-on
+    // at the sides of the map like two stray slivers.
+    tl.to(leftShade, { opacity: 0.55, duration: 0.8, ease: 'power2.in' }, 0.1)
+      .to(rightShade, { opacity: 0.55, duration: 0.8, ease: 'power2.in' }, 0.19)
+      .to(leftEl, { autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 1.05)
+      .to(rightEl, { autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 1.14)
+
+    // The push-in starts while the covers are still moving, so the two
+    // read as one gesture instead of a sequence of two.
+    tl.to(card.current, { scale: 1.12, duration: 1.5, ease: 'power2.inOut' }, 0.55)
+
+    tl.to(hint.current, { opacity: 0.8, duration: 0.6 }, 1.7)
+  }, [opened, reduced, onOpen])
+
+  // Enter and Space arrive as clicks on a real button, so only Escape needs
+  // handling — as a way past the cover for anyone who would rather not
+  // hunt for it.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') finish()
+      if (e.key === 'Escape') open()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [finish])
-
-  useEffect(() => {
-    if (!loaded || finished) return
-
-    // Already open, cross-fade only. Reduced motion means no vestibular
-    // load, not a stripped-down page.
-    if (reduced) {
-      const t = window.setTimeout(finish, 900)
-      return () => window.clearTimeout(t)
-    }
-
-    let built: gsap.core.Timeline | undefined
-
-    const ctx = gsap.context(() => {
-      const flaps = [left.current, right.current].filter(Boolean)
-      // Confined to the flaps, and cleared the moment they stop: leaving
-      // will-change on promotes layers that then sit around costing memory.
-      gsap.set(flaps, { willChange: 'transform' })
-
-      const tl = gsap.timeline({
-        defaults: { ease: 'power4.out' },
-        onComplete: () => {
-          gsap.set(flaps, { willChange: 'auto', clearProps: 'willChange' })
-        },
-      })
-
-      // --- the fold opens -------------------------------------------
-      // A touch past flat, then settling back, the way stiff paper does.
-      // The z offset is what makes the shut card read as shut: folded flat,
-      // a flap lands within a couple of degrees of the centre panel, and
-      // two near-coplanar surfaces sort unpredictably. Lifting the flaps
-      // proves which is on top — and it is also simply true, since folded
-      // paper lies over what it covers.
-      tl.fromTo(
-        left.current,
-        { rotateY: -178, z: 12 },
-        { rotateY: 2.5, z: 0, duration: 1.35 },
-        0,
-      )
-        .to(left.current, { rotateY: 0, duration: 0.42, ease: 'power2.inOut' }, 1.35)
-        // The right flap starts late. Perfect symmetry reads as machinery.
-        .fromTo(
-          right.current,
-          { rotateY: 178, z: 12 },
-          { rotateY: -2.5, z: 0, duration: 1.35 },
-          0.14,
-        )
-        .to(right.current, { rotateY: 0, duration: 0.42, ease: 'power2.inOut' }, 1.49)
-
-      // Fold shading tracks the angle: strongest edge-on, gone when flat.
-      tl.fromTo(
-        card.current,
-        { '--fold-shade': 1, '--crease': 0.9 },
-        { '--fold-shade': 0, '--crease': 0, duration: 1.5, ease: 'power2.out' },
-        0.1,
-      )
-
-      // The cast shadow spreads as the card opens out.
-      tl.fromTo(
-        card.current,
-        { '--shadow-width': '52%', '--shadow-opacity': 0.55 },
-        { '--shadow-width': '96%', '--shadow-opacity': 0.32, duration: 1.6 },
-        0,
-      )
-
-      // Re-centre as the card grows past its closed silhouette.
-      tl.fromTo(
-        card.current,
-        { '--card-offset': '-4.7%' },
-        { '--card-offset': '0%', duration: 1.5 },
-        0.1,
-      )
-
-      // --- the camera settles in ------------------------------------
-      tl.fromTo(
-        card.current,
-        { '--card-scale': 1 },
-        { '--card-scale': 1.04, duration: 0.85, ease: 'power2.inOut' },
-        1.2,
-      )
-
-      // --- and only then, the invitation to move on -----------------
-      tl.to(hint.current, { opacity: 0.75, duration: 0.6 }, 2.05)
-
-      built = tl
-    }, stage)
-
-    // Captured from inside the context rather than read off ctx.data:
-    // data[0] is the willChange `set`, not the timeline, so indexing into
-    // it silently handed back a zero-duration tween — which made skip kill
-    // the wrong object and left the real sequence running underneath.
-    timeline.current = built ?? null
-
-    // Dev-only handle so the sequence can be paused and seeked frame by
-    // frame from a screenshot script. Timing-based capture cannot hold
-    // still long enough to judge a 2-second fold — each screenshot costs
-    // more than the frame it is trying to catch.
-    if (import.meta.env.DEV) {
-      ;(window as unknown as { __intro: gsap.core.Timeline | null }).__intro = timeline.current
-    }
-
-    return () => ctx.revert()
-  }, [loaded, reduced, finished, finish])
+  }, [open])
 
   const pct = Math.round(progress * 100)
 
   return (
-    <div className="stage" ref={stage} data-done={finished} role="presentation">
+    <div className="stage" ref={stage} data-open={opened}>
       {!loaded && (
         <div className="preloader">
           <div className="preloader-inner">
@@ -174,67 +124,78 @@ export function CardUnfold({ onDone }: CardUnfoldProps) {
 
       <div className="card-viewport">
         <div className="card" ref={card}>
-          <div className="card-shadow" />
+          {/* The map, behind the cover from the start. */}
+          <div className="card-centre">
+            <InkLayer
+              name="panel-center"
+              alt="Harta weekendului: vineri la Cetatea Saschiz, sâmbătă la Viscri, duminică la Bike Check-Inn"
+              sizes="(max-width: 720px) 86vw, 54vh"
+              priority
+            />
+          </div>
 
-          <div className="panel panel-left" ref={left}>
-            <div className="panel-face">
+          <div className="shutter shutter-left" ref={left}>
+            <div className="shutter-face shutter-front">
               <InkLayer
                 name="panel-left"
-                alt="Isabella și Alin — 4, 5 și 6 septembrie 2026, weekend în Viscri"
-                sizes="(max-width: 720px) 0px, 30vw"
+                alt="Casa Tanase — noi doi, vă chemăm pe voi, pe colinele Transilvaniei"
+                sizes="(max-width: 720px) 48vw, 30vh"
                 priority
               />
-              <div className="fold-shade" />
+              <div className="shutter-shade" />
             </div>
-            <div className="panel-face panel-face-back">
-              <Rosette />
-            </div>
+            <div className="shutter-face shutter-back" />
           </div>
 
-          <div className="panel panel-center">
-            <div className="panel-face">
-              <InkLayer
-                name="panel-center"
-                alt="Harta celor trei zile: vineri, sâmbătă și duminică, de-a lungul drumului spre Viscri"
-                sizes="(max-width: 720px) 84vw, 50vw"
-                priority
-              />
-            </div>
-          </div>
-
-          <div className="panel panel-right" ref={right}>
-            <div className="panel-face">
+          <div className="shutter shutter-right" ref={right}>
+            <div className="shutter-face shutter-front">
               <InkLayer
                 name="panel-right"
-                alt="Cele mai bune drumuri sunt cele pe care le facem împreună — Viscri, Transilvania"
-                sizes="(max-width: 720px) 0px, 21vw"
+                alt="Cele mai frumoase ture sunt cele pe care le facem împreună cu voi — detalii practice și dress code"
+                sizes="(max-width: 720px) 38vw, 24vh"
                 priority
               />
-              <div className="fold-shade" />
+              <div className="shutter-shade" />
             </div>
-            <div className="panel-face panel-face-back">
-              <Rosette />
-            </div>
+            <div className="shutter-face shutter-back" />
           </div>
+
         </div>
+
+        {!opened && (
+          <button
+            type="button"
+            className="open-button"
+            ref={button}
+            onClick={open}
+            aria-label="Deschide invitația"
+          >
+            <SealStar />
+            <span className="caps caps-wide open-button-label">Deschide</span>
+          </button>
+        )}
       </div>
 
       <div className="scroll-hint" ref={hint} aria-hidden>
         <span className="caps caps-wide">Coboară</span>
         <span className="scroll-hint-rule" />
       </div>
-
-      <button type="button" className="skip caps" onClick={finish}>
-        Sari peste
-      </button>
     </div>
   )
 }
 
-/** Whether the sequence should run at all this session. */
-export function shouldPlayIntro(): boolean {
-  if (typeof window === 'undefined') return false
-  return sessionStorage.getItem(SEEN_KEY) !== '1'
+/** The compass star at button size, without the pale facets. */
+function SealStar() {
+  return (
+    <svg viewBox="-112 -112 224 224" aria-hidden fill="none">
+      <g stroke="currentColor" strokeWidth={7} strokeLinejoin="round">
+        <path
+          fill="currentColor"
+          d="M 0 0 L 0 -100 L 13.8 -33.3 Z M 0 0 L 46.7 -46.7 L 33.3 -13.8 Z M 0 0 L 100 0 L 33.3 13.8 Z
+             M 0 0 L 46.7 46.7 L 13.8 33.3 Z M 0 0 L 0 100 L -13.8 33.3 Z M 0 0 L -46.7 46.7 L -33.3 13.8 Z
+             M 0 0 L -100 0 L -33.3 -13.8 Z M 0 0 L -46.7 -46.7 L -13.8 -33.3 Z"
+        />
+      </g>
+    </svg>
+  )
 }
-
-export { SEEN_KEY }

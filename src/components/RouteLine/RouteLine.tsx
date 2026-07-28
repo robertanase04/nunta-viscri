@@ -174,13 +174,13 @@ export function RouteLine() {
       onUpdate: ({ progress }) => {
         line.style.strokeDashoffset = String(len * (1 - progress))
 
-        // Place the tandem at the head of the drawn section, turned to face
-        // along it. Sampling two nearby points is cheaper and steadier than
-        // differentiating the curve.
+        // The bicycle travels the line and nothing else. Turning it to face
+        // along the tangent is the obvious thing to do and it was wrong:
+        // the route runs mostly vertically, so the tangent points down, and
+        // the bicycle spent the page lying on its side or upside down. A
+        // bicycle is read as an upright symbol — it keeps its bearing.
         const p = line.getPointAtLength(len * progress)
-        const q = line.getPointAtLength(Math.max(0, len * progress - 8))
-        const angle = (Math.atan2(p.y - q.y, p.x - q.x) * 180) / Math.PI
-        gsap.set(rider.current, { x: p.x, y: p.y, rotation: angle })
+        gsap.set(rider.current, { x: p.x, y: p.y })
       },
     })
 
@@ -236,14 +236,20 @@ export function RouteLine() {
   )
 }
 
-/** The tandem from the invitation, side on, sized to sit on the track. */
+/**
+ * The tandem from the invitation, side on, riding the track.
+ *
+ * Red, because the plate draws this same tandem in red both times it
+ * appears on the map — so the marker that carries you down the page is the
+ * one mark you already met up in the card.
+ */
 function Tandem() {
   return (
     <g
-      transform="translate(-19 -10) scale(0.62)"
+      transform="translate(-26 -14) scale(0.86)"
       fill="none"
-      stroke="var(--ink)"
-      strokeWidth={2.6}
+      stroke="var(--accent)"
+      strokeWidth={2.4}
       strokeLinecap="round"
       strokeLinejoin="round"
     >

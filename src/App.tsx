@@ -1,154 +1,238 @@
-import { useCallback, useState } from 'react'
-import { CardUnfold, SEEN_KEY, shouldPlayIntro } from './components/CardUnfold/CardUnfold'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { CardUnfold } from './components/CardUnfold/CardUnfold'
 import { RouteLine } from './components/RouteLine/RouteLine'
 import { Section } from './components/Section/Section'
 import { Programme } from './components/Programme/Programme'
-import { CompassStar, Divider, Rosette, Swallow } from './components/Ornament'
+import { CompassStar, Divider, Rosette } from './components/Ornament'
 import { InkLayer } from './components/Illustration/InkLayer'
 import { useLenis } from './hooks/useLenis'
+import { useReducedMotion } from './hooks/useReducedMotion'
 import './styles/page.css'
 
-export function App() {
-  const [introPlaying, setIntroPlaying] = useState(() => shouldPlayIntro())
-  useLenis()
+gsap.registerPlugin(ScrollTrigger)
 
-  const replay = useCallback(() => {
-    sessionStorage.removeItem(SEEN_KEY)
-    window.scrollTo({ top: 0 })
-    setIntroPlaying(true)
-  }, [])
+export function App() {
+  const [open, setOpen] = useState(false)
+  const reduced = useReducedMotion()
+  const overlay = useRef<HTMLDivElement>(null)
+
+  // The page does not scroll until the invitation has been opened.
+  useLenis(open)
+
+  const onOpen = useCallback(() => setOpen(true), [])
+
+  /* A real lock while the card is shut. Withholding the smooth-scroll
+     instance is not enough on its own — native scrolling still works, so
+     the page could be pushed out from under an unopened invitation. */
+  useEffect(() => {
+    if (open) return
+    const root = document.documentElement
+    const previous = root.style.overflow
+    root.style.overflow = 'hidden'
+    return () => {
+      root.style.overflow = previous
+    }
+  }, [open])
+
+  /* Once open, the card is handed to the scroll: it lifts and fades over
+     the first screen height while the page rises underneath. This is what
+     replaces the dismiss button — you leave the invitation by reading on,
+     not by closing it. */
+  useEffect(() => {
+    if (!open || reduced) return
+
+    const ctx = gsap.context(() => {
+      gsap.to(overlay.current, {
+        autoAlpha: 0,
+        scale: 1.1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.intro-spacer',
+          start: 'top top',
+          end: 'bottom 25%',
+          scrub: 0.5,
+        },
+      })
+    })
+
+    // The route measures itself against document height, which only
+    // settles once the lock is lifted and the page has its real length.
+    ScrollTrigger.refresh()
+    return () => ctx.revert()
+  }, [open, reduced])
 
   return (
     <>
       <div className="paper-vignette" />
 
-      {introPlaying && <CardUnfold onDone={() => setIntroPlaying(false)} />}
+      <div className="intro-overlay" ref={overlay}>
+        <CardUnfold onOpen={onOpen} />
+      </div>
 
-      <div className="page">
+      <div className="page" data-open={open}>
+        {/* The screen height you scroll through to leave the card behind. */}
+        <div className="intro-spacer" aria-hidden />
+
         <RouteLine />
 
         <header className="masthead">
-          <p className="caps caps-wide masthead-kicker">Viscri, Transilvania</p>
+          <p className="caps caps-wide masthead-kicker">Pe colinele Transilvaniei</p>
           <h1 className="masthead-name">
-            Isabella <span className="amp">&amp;</span> Alin
+            Noi doi, <span className="amp">vă chemăm</span> pe voi
           </h1>
-          <p className="caps masthead-dates">04 · 05 · 06 septembrie 2026</p>
+          <p className="caps masthead-dates">
+            04 <span className="dot">·</span> 05 <span className="dot">·</span> 06 septembrie 2026
+          </p>
           <CompassStar className="masthead-star" />
         </header>
 
         <main>
-          <Section id="povestea" stop="01" title="Povestea" side="left">
+          <Section id="povestea" stop="01" title="Casa Tanase" side="left">
             <p data-reveal>
-              Ne-am cunoscut pe două biciclete, la capătul unui drum care nu ducea
-              nicăieri anume. De atunci am pedalat prin destule locuri, dar în Viscri
-              ne-am tot întors — pentru liniștea de la ora șase seara, pentru dealurile
-              care nu se termină și pentru oamenii care ne-au primit ca și cum ne-ar fi
-              știut dintotdeauna.
+              Ne-am cunoscut pe două biciclete și de atunci nu prea am mai coborât de
+              pe ele. Am pedalat prin destule locuri, dar pe colinele dintre Saschiz și
+              Viscri ne-am tot întors — pentru drumurile de pământ care nu duc nicăieri
+              anume, pentru cetatea de pe deal și pentru liniștea de la ora șase seara.
             </p>
             <p data-reveal>
               Ne căsătorim aici, în septembrie. Nu într-o zi, ci în trei — pentru că
-              drumul până în Viscri e lung și ar fi păcat să-l faceți degeaba.
+              drumul până la noi e lung și ar fi păcat să-l faceți degeaba.
             </p>
+
+            <div className="figure figure-plain" data-reveal>
+              <InkLayer
+                name="tandem"
+                alt="Isabella și Alin pe tandem, sub stema Casei Tanase"
+                sizes="(max-width: 720px) 70vw, 22rem"
+              />
+            </div>
           </Section>
 
-          <Section id="programul" stop="02" title="Programul" side="right">
+          <Section id="programul" stop="02" title="Trei zile" side="right">
             <p data-reveal>
-              Trei zile, fără grabă. Nimic nu e obligatoriu în afară de sâmbătă la patru.
+              Nimic nu e obligatoriu în afară de sâmbătă la două și jumătate. Restul e
+              la îndemâna voastră.
             </p>
             <Programme />
           </Section>
 
-          <Section id="viscri" stop="03" title="Viscri" side="left">
+          <Section id="locurile" stop="03" title="Locurile" side="left">
             <p data-reveal>
-              Un sat săsesc de vreo șaptezeci de case, cu o biserică fortificată din
-              secolul al XIII-lea în mijloc. Nu are semafor, nu are supermarket și, în
-              cele mai bune seri, nu are nici semnal. Cununia va fi în curtea bisericii.
+              Trei popasuri, la câțiva kilometri unul de altul, pe cele mai frumoase
+              drumuri din zonă.
             </p>
 
-            <div className="figure" data-reveal>
-              <InkLayer
-                name="layer-castle"
-                alt="Biserica fortificată din Viscri, văzută dinspre deal"
-                sizes="(max-width: 720px) 90vw, 46vw"
-              />
-              <p className="caps figure-caption">Cetatea, dinspre miazăzi</p>
+            <div className="places" data-reveal>
+              <figure className="place">
+                <InkLayer
+                  name="cetatea"
+                  alt="Cetatea fortificată din Saschiz, văzută de sus"
+                  sizes="(max-width: 720px) 80vw, 17rem"
+                />
+                <figcaption>
+                  <span className="caps place-name">Cetatea Saschiz</span>
+                  <span className="place-note">
+                    Biserica fortificată din secolul al XV-lea. Aici ne vedem vineri, la
+                    Castle View, pentru cununia civilă.
+                  </span>
+                </figcaption>
+              </figure>
+
+              <figure className="place">
+                <InkLayer
+                  name="casa-viscri"
+                  alt="Casa săsească din Viscri unde are loc petrecerea"
+                  sizes="(max-width: 720px) 80vw, 17rem"
+                />
+                <figcaption>
+                  <span className="caps place-name">Viscri 9</span>
+                  <span className="place-note">
+                    O casă săsească pe uliță în sus. Sâmbătă e ziua cea mare: cununia
+                    religioasă, masa festivă și chef până se face lumină.
+                  </span>
+                </figcaption>
+              </figure>
+
+              <figure className="place">
+                <InkLayer
+                  name="bike-inn"
+                  alt="Bike Check-Inn, punctul de plecare pentru tura de duminică"
+                  sizes="(max-width: 720px) 80vw, 17rem"
+                />
+                <figcaption>
+                  <span className="caps place-name">Bike Check-Inn</span>
+                  <span className="place-note">
+                    Duminică la prânz, cu cafea din dubă și biciclete pentru cine mai
+                    are putere de pedalat.
+                  </span>
+                </figcaption>
+              </figure>
             </div>
+          </Section>
 
+          <Section id="detalii" stop="04" title="Ce e bine să știți" side="right">
             <dl className="facts" data-reveal>
               <div>
-                <dt className="caps">Cum ajungeți</dt>
+                <dt className="caps">Mașina rămâne la cazare</dt>
                 <dd>
-                  3 ore cu mașina din București, 1 oră și jumătate din Sibiu, 40 de minute
-                  din Sighișoara. Ultimii 7 kilometri sunt de piatră — se merge încet, dar
-                  se merge cu orice mașină.
+                  Transportul îl asigurăm noi tot weekendul, între cazare și fiecare
+                  popas. Inclusiv bicicletele — nu trebuie să veniți cu ale voastre.
                 </dd>
               </div>
               <div>
-                <dt className="caps">Unde dormiți</dt>
+                <dt className="caps">Cazările sunt deja rezervate</dt>
                 <dd>
-                  Am ținut pentru voi camere în casele din sat. Scrieți-ne în formularul de
-                  mai jos câte locuri vă trebuie și ne ocupăm noi de rest.
+                  Nu trebuie să căutați nimic. Spuneți-ne doar câte nopți vreți să
+                  rămâneți și ne ocupăm de rest.
+                </dd>
+              </div>
+              <div>
+                <dt className="caps">Veniți cu copiii</dt>
+                <dd>
+                  Fiecare activitate din weekend e gândită să meargă și cu ei. Curțile
+                  sunt mari și avem pe cine ne baza.
+                </dd>
+              </div>
+              <div>
+                <dt className="caps">Dress code: „Albastru de Saschiz”</dt>
+                <dd>
+                  Albastrul de pe invitație, în ce nuanță vă place. Purtați ceva ușor și
+                  comod — se merge pe iarbă și pe piatră, iar seara, în septembrie,
+                  dealurile își aduc aminte că e toamnă.
                 </dd>
               </div>
             </dl>
-          </Section>
 
-          <Section id="detalii" stop="04" title="Câteva lucruri practice" side="right">
-            <dl className="facts" data-reveal>
-              <div>
-                <dt className="caps">Cum ne îmbrăcăm</dt>
-                <dd>
-                  Elegant, dar cu picioarele pe pământ — la propriu. Curtea bisericii e cu
-                  iarbă, iar drumul până acolo e de piatră. Lăsați tocurile subțiri acasă și
-                  veți fi mult mai fericiți la miezul nopții.
-                </dd>
-              </div>
-              <div>
-                <dt className="caps">Ce merită pus în bagaj</dt>
-                <dd>
-                  Ceva gros pentru seară — în septembrie, la ora unsprezece, dealurile își
-                  aduc aminte că e toamnă. Pantofi comozi pentru duminică. Și un aparat de
-                  fotografiat, dacă mai aveți unul cu film.
-                </dd>
-              </div>
-              <div>
-                <dt className="caps">Copiii</dt>
-                <dd>Sunt bineveniți toți. Curtea e mare și avem pe cine să ne bazăm.</dd>
-              </div>
-              <div>
-                <dt className="caps">Daruri</dt>
-                <dd>
-                  Prezența voastră e destul. Dacă totuși insistați, ne strângem pentru un
-                  acoperiș nou la casa din sat.
-                </dd>
-              </div>
-            </dl>
+            <div className="figure figure-plain" data-reveal>
+              <InkLayer
+                name="indicatoare"
+                alt="Indicator rutier spre Viscri, Saschiz și Bunești"
+                sizes="(max-width: 720px) 55vw, 13rem"
+              />
+            </div>
           </Section>
-
         </main>
 
         <footer className="colophon">
-          <Swallow className="colophon-bird" />
-          <Divider className="colophon-rule" />
-          <blockquote className="colophon-quote">
-            Cele mai bune drumuri
-            <br />
-            sunt cele pe care le facem împreună.
-          </blockquote>
+          <InkLayer
+            name="cuplu-inima"
+            alt="Cele mai frumoase ture sunt cele pe care le facem împreună cu voi"
+            sizes="(max-width: 720px) 70vw, 20rem"
+            className="colophon-heart"
+          />
+
           <Divider className="colophon-rule" />
 
           <InkLayer
-            name="haystacks"
+            name="satul"
             alt=""
-            sizes="(max-width: 720px) 60vw, 280px"
-            className="colophon-hay"
+            sizes="(max-width: 720px) 60vw, 16rem"
+            className="colophon-village"
           />
 
-          <p className="caps caps-wide colophon-place">Viscri, Transilvania</p>
-
-          <button type="button" className="caps replay" onClick={replay}>
-            Revezi deschiderea
-          </button>
+          <p className="caps caps-wide colophon-place">Viscri · Saschiz · Bunești</p>
 
           <Rosette className="colophon-rosette" />
         </footer>

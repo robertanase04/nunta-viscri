@@ -1,17 +1,16 @@
 /**
  * Asset pipeline.
  *
- * The source is ink on paper: a flat JPEG where every light pixel is paper
- * and every dark pixel is ink. Rather than shipping opaque rectangles, we
- * key the paper out into the alpha channel, so each layer becomes an ink
- * stamp. Three things fall out of that:
+ * The source is ink on paper: every light pixel is paper, every dark one is
+ * printing. Rather than shipping opaque rectangles, the paper is keyed out
+ * into the alpha channel so each region becomes a stamp. Three things fall
+ * out of that:
  *
- *   - layers overlap during parallax with no seams and no paper-on-paper
- *     rectangle edges;
+ *   - regions overlap without seams and without paper-on-paper edges;
  *   - the CSS paper colour and the procedural grain show through the art
  *     instead of sitting on top of a baked-in background;
- *   - the JPEG's own paper noise is discarded, which is most of what the
- *     encoder spent bits on.
+ *   - the source's paper noise is discarded, which is most of what the
+ *     encoder would otherwise spend bits on.
  *
  * Alpha is derived from luminance between a measured paper point and a
  * measured ink point, then gamma-shaped so mid-density hatching keeps its
@@ -24,12 +23,12 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const SRC = join(ROOT, 'assets/source/invitation-hi.jpeg')
+const SRC = join(ROOT, 'assets/source/invitation-v2.png')
 const OUT = join(ROOT, 'public/art')
 
-/** Measured from the source — see the palette extraction in the README. */
-const PAPER_LUM = 231
-const INK_LUM = 45
+/** Measured from the source — see the palette extraction in tokens.css. */
+const PAPER_LUM = 236
+const INK_LUM = 60
 /** <1 lifts mid-density hatching so it does not wash out. */
 const ALPHA_GAMMA = 0.78
 
@@ -43,8 +42,17 @@ const ALPHA_GAMMA = 0.78
  */
 const PAPER_FLOOR = 0.055
 
-/** The one ink, as measured. See tokens.css on why there is only one. */
-const INK_RGB = [30, 42, 54]
+/**
+ * What to paint the fully transparent pixels.
+ *
+ * This invitation is printed in two colours, so unlike the first one the
+ * artwork's own RGB has to survive — flattening everything to a single ink
+ * turned the red hearts and the red hours blue. Colour is therefore kept
+ * wherever there is coverage, and only the empty ground is filled with a
+ * constant. That still leaves roughly two thirds of every tile as one flat
+ * value, which is where the encoding saving came from in the first place.
+ */
+const VOID_RGB = [45, 85, 153]
 
 /**
  * Regions in source pixels. The panel bounds were found by locating the
@@ -52,36 +60,40 @@ const INK_RGB = [30, 42, 54]
  * columns) rather than by eye.
  */
 const REGIONS = {
-  'panel-left': { left: 6, top: 0, width: 444, height: 1024 },
-  'panel-center': { left: 462, top: 0, width: 738, height: 1024 },
-  'panel-right': { left: 1226, top: 0, width: 304, height: 1024 },
+  /* Panels. The fold gutters were located as sustained bright columns and
+     the borders as the darkest ones. The two cover flaps are not the same
+     width — 517 against 416 — which the layout has to account for rather
+     than assume symmetry. */
+  'panel-left': { left: 8, top: 0, width: 517, height: 1333 },
+  'panel-center': { left: 568, top: 0, width: 977, height: 1333 },
+  'panel-right': { left: 1580, top: 0, width: 416, height: 1333 },
 
-  /* Parallax strata, cut from the centre panel. They overlap deliberately;
-     alpha keying means the overlaps are invisible until they move. */
-  'layer-sky': { left: 470, top: 0, width: 726, height: 300 },
-  'layer-castle': { left: 812, top: 248, width: 350, height: 260 },
-  'layer-village': { left: 470, top: 620, width: 726, height: 404 },
+  /* Vignettes lifted off the centre map, read from a coordinate grid. */
+  'cetatea': { left: 588, top: 85, width: 285, height: 255 },
+  'casa-viscri': { left: 1025, top: 488, width: 420, height: 268 },
+  'bike-inn': { left: 572, top: 938, width: 302, height: 252 },
+  'satul': { left: 1292, top: 1126, width: 242, height: 155 },
 
-  /* Vignettes reused across the site. */
-  'crest': { left: 74, top: 150, width: 310, height: 430 },
-  'haystacks': { left: 1240, top: 800, width: 280, height: 190 },
-  'swallow': { left: 1300, top: 180, width: 160, height: 110 },
-  'tree-left': { left: 466, top: 600, width: 190, height: 330 },
+  /* The red tandem that closes the map, kept for the page footer. */
+  'tandem-rosu': { left: 1146, top: 1196, width: 98, height: 90 },
+
+  /* And off the two cover panels. */
+  'tandem': { left: 88, top: 330, width: 372, height: 362 },
+  'indicatoare': { left: 1596, top: 978, width: 198, height: 172 },
+  'cuplu-inima': { left: 1628, top: 172, width: 305, height: 285 },
 }
 
 /** Widths to emit per asset class. */
 const WIDTH_SETS = {
-  panel: [420, 640, 900, 1200],
-  layer: [480, 760, 1100, 1460],
-  vignette: [200, 320, 480, 640],
+  panel: [480, 720, 1000, 1400],
+  vignette: [220, 360, 520, 700],
 }
 
-const classOf = (name) =>
-  name.startsWith('panel-') ? 'panel' : name.startsWith('layer-') ? 'layer' : 'vignette'
+const classOf = (name) => (name.startsWith('panel-') ? 'panel' : 'vignette')
 
 /**
- * Replace the image with a single-colour ink stamp whose alpha encodes the
- * original ink density. Done on raw pixels because it is a per-pixel curve,
+ * Turn the tile into an ink stamp: paper keyed out into alpha, the plate's
+ * own two colours kept. Done on raw pixels because it is a per-pixel curve,
  * not something sharp exposes.
  */
 async function toInkStamp(pipeline) {
@@ -100,7 +112,7 @@ async function toInkStamp(pipeline) {
     const g = data[o + 1]
     const b = data[o + 2]
 
-    // Rec. 709 luma — the source is near-monochrome so this is faithful.
+    // Rec. 709 luma. Coverage only — which colour it is stays in RGB.
     const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
 
     let a = (PAPER_LUM - lum) / span
@@ -112,13 +124,21 @@ async function toInkStamp(pipeline) {
     a = Math.pow(a, ALPHA_GAMMA)
 
     const q = i * 4
-    // A flat RGB plane costs almost nothing to encode and is the honest
-    // representation: this is one ink at varying coverage, and coverage is
-    // exactly what alpha means.
-    out[q] = INK_RGB[0]
-    out[q + 1] = INK_RGB[1]
-    out[q + 2] = INK_RGB[2]
-    out[q + 3] = Math.round(a * 255)
+    if (a === 0) {
+      // Nothing drawn here. A constant compresses to almost nothing, and
+      // the value is invisible anyway at zero alpha — but it must be a
+      // constant, since carrying the source's paper noise through was what
+      // made the first version of this pipeline cost megabytes a tile.
+      out[q] = VOID_RGB[0]
+      out[q + 1] = VOID_RGB[1]
+      out[q + 2] = VOID_RGB[2]
+      out[q + 3] = 0
+    } else {
+      out[q] = r
+      out[q + 1] = g
+      out[q + 2] = b
+      out[q + 3] = Math.round(a * 255)
+    }
   }
 
   return sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })

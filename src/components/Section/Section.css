@@ -1,40 +1,42 @@
+/* ------------------------------------------------------------------
+   A stop on the route.
+
+   The reading column is centred and narrow, and it stays put. Only the
+   milestone alternates sides, and the route weaves through the clear
+   lanes either side of the text. An earlier version swung the copy
+   itself from margin to margin across the full width, which looked like
+   a map but made the eye travel the whole screen between paragraphs.
+   ------------------------------------------------------------------ */
+
 .section {
+  --frame: min(100% - var(--gutter) * 2, 1080px);
+  --column: 43rem;
+
   position: relative;
   z-index: 1;
-  width: min(100% - var(--gutter) * 2, 1160px);
+  width: var(--frame);
   margin-inline: auto;
-  padding-block: clamp(5rem, 11vh, 9rem);
+  padding-block: clamp(4.5rem, 10vh, 8rem);
+}
+
+.section-body {
+  width: min(100%, var(--column));
+  margin-inline: auto;
   display: grid;
-  gap: clamp(1.5rem, 3vw, 3rem);
+  gap: 1.15rem;
 }
 
-/* The stone is the point the route is drawn through, so it holds the
-   margin on its own and the copy is inset to leave the track a clear
-   lane. Anything less and the line runs straight over the text. */
-.section[data-side='left'] {
-  justify-items: start;
-  padding-inline-start: var(--lane);
+.section-title {
+  font-size: var(--step-3);
+  color: var(--ink-deep);
+  margin-bottom: 0.4rem;
 }
 
-.section[data-side='right'] {
-  justify-items: end;
-  text-align: right;
-  padding-inline-end: var(--lane);
-}
-
-.section[data-side='center'] {
-  justify-items: center;
-  text-align: center;
-}
-
-.section {
-  --lane: clamp(0px, 11vw, 168px);
-}
-
+/* The stone holds the outer margin; the route is measured through it. */
 .section-stone {
   position: absolute;
-  top: clamp(5rem, 11vh, 9rem);
-  width: clamp(46px, 5vw, 64px);
+  top: clamp(4.5rem, 10vh, 8rem);
+  width: clamp(42px, 4.4vw, 58px);
   color: var(--ink);
 }
 
@@ -51,74 +53,12 @@
   transform: translateX(-50%);
 }
 
-/* Centre stops put the stone above the heading, so the copy has to start
-   below it rather than behind it. */
-.section[data-side='center'] .section-body {
-  padding-top: clamp(4.5rem, 7vw, 6rem);
-}
-
-.section-body {
-  max-width: var(--measure);
-  display: grid;
-  gap: 1.25rem;
-}
-
-.section[data-side='right'] .section-body {
-  justify-items: end;
-}
-
-.section[data-side='center'] .section-body {
-  justify-items: center;
-}
-
-.section-title {
-  font-size: var(--step-3);
-  color: var(--ink-deep);
-}
-
-/* Reveals start hidden only when they are going to be animated. Without
-   this guard a failed script leaves the page permanently blank. */
-@media (prefers-reduced-motion: no-preference) {
-  [data-reveal] {
-    clip-path: inset(0 100% 0 0);
-  }
-}
-
-@media (max-width: 720px) {
-  /* Below this width there is no room for a lane beside the copy, so the
-     route runs down the far left and every stop reads the same way. */
-  .section,
-  .section[data-side='right'],
-  .section[data-side='center'] {
-    --lane: 4.2rem;
-    justify-items: start;
-    text-align: left;
-    padding-inline: 4.2rem 0;
-  }
-
-  .section[data-side='right'] .section-stone,
-  .section[data-side='center'] .section-stone {
-    left: 0;
-    right: auto;
-    transform: none;
-  }
-
-  .section[data-side='center'] .section-body {
-    padding-top: 0;
-  }
-
-  .section[data-side='right'] .section-body,
-  .section[data-side='center'] .section-body {
-    justify-items: start;
-  }
-}
-
 /* The exit waypoint: no size of its own, parked at the foot of the section
    on the same side as the stone so the route can be measured through it. */
 .section-exit {
   position: absolute;
   bottom: 0;
-  width: clamp(46px, 5vw, 64px);
+  width: clamp(42px, 4.4vw, 58px);
   height: 1px;
 }
 
@@ -135,7 +75,27 @@
   transform: translateX(-50%);
 }
 
-@media (max-width: 720px) {
+/* Reveals start hidden only when they are going to be animated. Without
+   this guard a failed script leaves the page permanently blank. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+/* Below this the lanes disappear: the route runs down the far left and
+   every stop reads the same way. */
+@media (max-width: 860px) {
+  .section {
+    padding-inline: 3.6rem 0;
+  }
+
+  .section-body {
+    margin-inline: 0;
+  }
+
+  .section[data-side='right'] .section-stone,
+  .section[data-side='center'] .section-stone,
   .section[data-side='right'] .section-exit,
   .section[data-side='center'] .section-exit {
     left: 0;
