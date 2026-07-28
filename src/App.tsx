@@ -122,12 +122,16 @@ export function App() {
         </header>
 
         <main>
-          <Section id="povestea" stop="01" title="Casa Tanase" side="left">
+          <Section id="povestea" stop="01" title="Casa Tănase" side="left">
             <p data-reveal>
-              Ne-am cunoscut pe două biciclete și de atunci nu prea am mai coborât de
-              pe ele. Am pedalat prin destule locuri, dar pe colinele dintre Saschiz și
-              Viscri ne-am tot întors — pentru drumurile de pământ care nu duc nicăieri
-              anume, pentru cetatea de pe deal și pentru liniștea de la ora șase seara.
+              Ne-am cunoscut la cabinet, nu pe biciclete, însă timpul liber și
+              vacanțele ne-au fost facilitate de biciclete încă din august 2021. De
+              atunci ne-am vândut mașina și nu prea am mai coborât de pe ele. Am pedalat
+              prin destule locuri, dar pe colinele dintre Saschiz și Viscri ne-am tot
+              întors — pentru drumurile de pământ care nu duc nicăieri anume, pentru
+              liniștea de la amiază, dar mai ales pentru oamenii care însuflețesc și
+              îngrijesc această bucată din Transilvania. Îi veți cunoaște și voi pe o
+              parte dintre ei.
             </p>
             <p data-reveal>
               Ne căsătorim aici, în septembrie. Nu într-o zi, ci în trei — pentru că
@@ -137,38 +141,36 @@ export function App() {
             <div className="figure figure-plain" data-reveal>
               <InkLayer
                 name="tandem"
-                alt="Isabella și Alin pe tandem, sub stema Casei Tanase"
+                alt="Cei doi miri pe tandem, sub stema Casei Tănase"
                 sizes="(max-width: 720px) 70vw, 22rem"
               />
             </div>
           </Section>
 
-          <Section id="programul" stop="02" title="Trei zile" side="right">
-            <p data-reveal>
-              Nimic nu e obligatoriu în afară de sâmbătă la două și jumătate. Restul e
-              la îndemâna voastră.
-            </p>
+          <Section id="programul" stop="02" title="Trei zile, trei sate săsești" side="right">
             <Programme />
           </Section>
 
-          <Section id="locurile" stop="03" title="Locurile" side="left">
+          <Section id="locurile" stop="03" title="Locuri" side="left">
             <p data-reveal>
-              Trei popasuri, la câțiva kilometri unul de altul, pe cele mai frumoase
-              drumuri din zonă.
+              Trei popasuri, trei zile diferite în trei sate săsești vecine. Pe toate le
+              îndrăgim la fel de tare — nu ne-am putut decide la unul singur!
             </p>
 
             <div className="places" data-reveal>
               <figure className="place">
                 <InkLayer
                   name="cetatea"
-                  alt="Cetatea fortificată din Saschiz, văzută de sus"
+                  alt="Cetatea țărănească din Saschiz, văzută de sus"
                   sizes="(max-width: 720px) 80vw, 17rem"
                 />
                 <figcaption>
-                  <span className="caps place-name">Cetatea Saschiz</span>
+                  <span className="caps place-name">Saschiz</span>
                   <span className="place-note">
-                    Biserica fortificată din secolul al XV-lea. Aici ne vedem vineri, la
-                    Castle View, pentru cununia civilă.
+                    Veți fi aduși la Castle View, o casă săsească de la 1816, de unde vom
+                    porni pe deal la Cetatea Țărănească Saschiz. Acolo spunem „DA”
+                    răspicat și revenim la Castle View pentru o cină tradițională și o
+                    petrecere de warm-up.
                   </span>
                 </figcaption>
               </figure>
@@ -176,14 +178,16 @@ export function App() {
               <figure className="place">
                 <InkLayer
                   name="casa-viscri"
-                  alt="Casa săsească din Viscri unde are loc petrecerea"
+                  alt="Casa săsească din Viscri de unde pornește alaiul"
                   sizes="(max-width: 720px) 80vw, 17rem"
                 />
                 <figcaption>
-                  <span className="caps place-name">Viscri 9</span>
+                  <span className="caps place-name">Viscri</span>
                   <span className="place-note">
-                    O casă săsească pe uliță în sus. Sâmbătă e ziua cea mare: cununia
-                    religioasă, masa festivă și chef până se face lumină.
+                    Pornim de la Viscri 9, o casă săsească la cotitură pe ulița
+                    principală. La Biserica Fortificată din Viscri ne vom împreuna
+                    destinele și în temei spiritual. Apoi, cu tot alaiul, ajungem la
+                    Viscri 125 unde — sperăm noi! — petrecem până dimineața.
                   </span>
                 </figcaption>
               </figure>
@@ -191,14 +195,17 @@ export function App() {
               <figure className="place">
                 <InkLayer
                   name="bike-inn"
-                  alt="Bike Check-Inn, punctul de plecare pentru tura de duminică"
+                  alt="Bike Checkinn, punctul de plecare pentru tura de duminică"
                   sizes="(max-width: 720px) 80vw, 17rem"
                 />
                 <figcaption>
-                  <span className="caps place-name">Bike Check-Inn</span>
+                  <span className="caps place-name">Bunești</span>
                   <span className="place-note">
-                    Duminică la prânz, cu cafea din dubă și biciclete pentru cine mai
-                    are putere de pedalat.
+                    A treia zi, după micul dejun, ne întâlnim la Bike Checkinn să ne
+                    dregem cu cafea și limonade. Pe la unu-două dăm o tură cu bicicleta,
+                    cât ne țin pedalele. Revenim la Bike Checkinn să ne îndopăm cu
+                    gustări locale și, spre seară, încercuim un foc de tabără pe fundal
+                    de muzică folk.
                   </span>
                 </figcaption>
               </figure>
@@ -218,23 +225,35 @@ export function App() {
                 <dt className="caps">Cazările sunt deja rezervate</dt>
                 <dd>
                   Nu trebuie să căutați nimic. Spuneți-ne doar câte nopți vreți să
-                  rămâneți și ne ocupăm de rest.
+                  rămâneți și ne ocupăm de rest. Micul dejun va fi inclus sau opțional.
                 </dd>
               </div>
               <div>
                 <dt className="caps">Veniți cu copiii</dt>
                 <dd>
-                  Fiecare activitate din weekend e gândită să meargă și cu ei. Curțile
-                  sunt mari și avem pe cine ne baza.
+                  Fiecare activitate din weekend e gândită să îi includă și pe ei.
+                  Curțile sunt mari și avem pe cine ne baza să îi distreze.
                 </dd>
               </div>
               <div>
                 <dt className="caps">Dress code: „Albastru de Saschiz”</dt>
                 <dd>
-                  Albastrul de pe invitație, în ce nuanță vă place. Purtați ceva ușor și
-                  comod — se merge pe iarbă și pe piatră, iar seara, în septembrie,
-                  dealurile își aduc aminte că e toamnă.
+                  Albastrul de pe ceramica de Saschiz, în ce nuanță vă place. Purtați
+                  ceva ușor și comod — se merge pe iarbă și pe piatră, iar seara, în
+                  septembrie, dealurile își aduc aminte că e toamnă.
                 </dd>
+              </div>
+              <div>
+                <dt className="caps">Speech sau toast</dt>
+                <dd>
+                  Invitație deschisă pentru a împărtăși o poveste, un sfat, o glumă sau o
+                  poză amuzantă cu noi. Cei fără frică de dentist sau de vorbit în public,
+                  anunțați-o pe Cătălina Popoviciu în prealabil.
+                </dd>
+              </div>
+              <div>
+                <dt className="caps">Restricții alimentare sau muzicale?</dt>
+                <dd>Let us know.</dd>
               </div>
             </dl>
 
@@ -250,22 +269,15 @@ export function App() {
 
         <footer className="colophon">
           <InkLayer
-            name="cuplu-inima"
-            alt="Cele mai frumoase ture sunt cele pe care le facem împreună cu voi"
-            sizes="(max-width: 720px) 70vw, 20rem"
-            className="colophon-heart"
+            name="cuplu-camp"
+            alt="Cei doi miri pe un câmp de păpădii, cu bicicleta alături"
+            sizes="(max-width: 720px) 78vw, 26rem"
+            className="colophon-couple"
           />
 
           <Divider className="colophon-rule" />
 
-          <InkLayer
-            name="satul"
-            alt=""
-            sizes="(max-width: 720px) 60vw, 16rem"
-            className="colophon-village"
-          />
-
-          <p className="caps caps-wide colophon-place">Viscri · Saschiz · Bunești</p>
+          <p className="caps caps-wide colophon-place">Saschiz · Viscri · Bunești</p>
 
           <Rosette className="colophon-rosette" />
         </footer>

@@ -59,23 +59,6 @@
       520
     ]
   },
-  "satul": {
-    "width": 236,
-    "height": 158,
-    "aspect": 1.4937,
-    "widths": [
-      220,
-      360
-    ]
-  },
-  "tandem-rosu": {
-    "width": 98,
-    "height": 90,
-    "aspect": 1.0889,
-    "widths": [
-      98
-    ]
-  },
   "tandem": {
     "width": 426,
     "height": 630,
@@ -96,14 +79,15 @@
       360
     ]
   },
-  "cuplu-inima": {
-    "width": 305,
-    "height": 285,
-    "aspect": 1.0702,
+  "cuplu-camp": {
+    "width": 1086,
+    "height": 1448,
+    "aspect": 0.75,
     "widths": [
       220,
       360,
-      520
+      520,
+      700
     ]
   }
 }

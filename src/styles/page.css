@@ -157,19 +157,15 @@
   text-align: center;
 }
 
-.colophon-heart {
-  width: min(72vw, 19rem);
+/* The one photograph on the page, and the only thing above the sign-off. */
+.colophon-couple {
+  width: min(78vw, 26rem);
 }
 
 .colophon-rule {
   width: min(100%, 15rem);
   color: var(--ink);
   opacity: 0.6;
-}
-
-.colophon-village {
-  width: min(62vw, 15rem);
-  opacity: 0.9;
 }
 
 .colophon-place {

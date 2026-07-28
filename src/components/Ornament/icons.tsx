@@ -20,6 +20,12 @@ export type IconName =
   | 'bonfire'
   | 'cup'
   | 'heart'
+  | 'pin'
+  | 'acte'
+  | 'ceaun'
+  | 'disco'
+  | 'alarma'
+  | 'dans'
 
 interface IconProps {
   name: IconName
@@ -79,6 +85,54 @@ const PATHS: Record<IconName, readonly string[]> = {
   ],
   heart: [
     'M 32 50 C 14 38 10 28 10 22 a 11 11 0 0 1 22 -4 a 11 11 0 0 1 22 4 c 0 6 -4 16 -22 28 Z',
+  ],
+
+  /* Where you are collected from, and where you are taken. */
+  pin: [
+    'M 32 56 C 20 40 14 32 14 25 a 18 18 0 0 1 36 0 c 0 7 -6 15 -18 31 Z',
+    'M 32 25 m -7 0 a 7 7 0 1 0 14 0 a 7 7 0 1 0 -14 0',
+  ],
+
+  /* The civil ceremony: a document with a seal and its ribbon. */
+  acte: [
+    'M 15 8 L 41 8 L 49 16 L 49 56 L 15 56 Z',
+    'M 41 8 L 41 16 L 49 16',
+    'M 22 26 L 42 26 M 22 34 L 42 34 M 22 42 L 32 42',
+    'M 42 47 m -7 0 a 7 7 0 1 0 14 0 a 7 7 0 1 0 -14 0',
+    'M 38 53 L 37 62 L 42 59 L 47 62 L 46 53',
+  ],
+
+  /* Dinner over the fire: a cauldron on its tripod. */
+  ceaun: [
+    'M 12 26 L 52 26 L 47 42 a 12 12 0 0 1 -11 7 L 28 49 a 12 12 0 0 1 -11 -7 Z',
+    'M 18 26 L 18 21 M 46 26 L 46 21',
+    'M 20 49 L 14 60 M 44 49 L 50 60 M 32 49 L 32 60',
+    'M 24 18 q 3 -5 0 -9 M 32 18 q 3 -6 0 -11 M 40 18 q 3 -5 0 -9',
+  ],
+
+  /* The DJ set, as the mirror ball above it. */
+  disco: [
+    'M 32 12 L 32 4 M 26 4 L 38 4',
+    'M 32 34 m -20 0 a 20 20 0 1 0 40 0 a 20 20 0 1 0 -40 0',
+    'M 32 14 L 32 54 M 12 34 L 52 34',
+    'M 32 14 q -13 20 0 40 M 32 14 q 13 20 0 40',
+    'M 32 20 q -20 14 0 28 M 32 20 q 20 14 0 28',
+  ],
+
+  /* Lights out at eleven. */
+  alarma: [
+    'M 32 36 m -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0',
+    'M 32 26 L 32 36 L 39 40',
+    'M 17 11 q -8 4 -8 12 M 47 11 q 8 4 8 12',
+    'M 18 52 L 13 59 M 46 52 L 51 59',
+  ],
+
+  /* And the party: someone with both arms up. */
+  dans: [
+    'M 32 12 m -6 0 a 6 6 0 1 0 12 0 a 6 6 0 1 0 -12 0',
+    'M 32 18 L 32 36',
+    'M 32 22 L 19 14 M 32 22 L 45 12',
+    'M 32 36 L 22 56 M 32 36 L 43 54',
   ],
 }
 

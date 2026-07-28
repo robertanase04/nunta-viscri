@@ -24,6 +24,11 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = join(ROOT, 'assets/source/invitation-v2.png')
+/** Regions may name their own source; this is the default. */
+const SOURCES = {
+  invitation: SRC,
+  'cuplu-camp': join(ROOT, 'assets/source/cuplu-camp.png'),
+}
 const OUT = join(ROOT, 'public/art')
 
 /**
@@ -111,10 +116,6 @@ const REGIONS = {
   'cetatea': { left: 573, top: 52, width: 327, height: 300 },
   'casa-viscri': { left: 1004, top: 468, width: 458, height: 324 },
   'bike-inn': { left: 573, top: 880, width: 327, height: 436 },
-  'satul': { left: 1298, top: 1126, width: 236, height: 158 },
-
-  /* The red tandem that closes the map, kept for the page footer. */
-  'tandem-rosu': { left: 1146, top: 1196, width: 98, height: 90 },
 
   /* And off the two cover panels. */
   /* The whole Casa Tanase emblem — heart, both towers with their flags,
@@ -123,7 +124,12 @@ const REGIONS = {
      ribbon into the rosette below it. */
   'tandem': { left: 60, top: 100, width: 426, height: 630 },
   'indicatoare': { left: 1596, top: 978, width: 198, height: 172 },
-  'cuplu-inima': { left: 1628, top: 172, width: 305, height: 285 },
+
+  /* A separate drawing, not part of the plate: the couple in a dandelion
+     field. Same blue on the same cream, so it goes through the same keying
+     and composites over the page paper like everything else. Taken whole —
+     there is nothing to crop away. */
+  'cuplu-camp': { src: 'cuplu-camp', left: 0, top: 0, width: 1086, height: 1448 },
 }
 
 /** Widths to emit per asset class. */
@@ -231,8 +237,8 @@ async function main() {
 
   for (const [name, box] of Object.entries(REGIONS)) {
     if (only && !name.includes(only)) continue
-    const { padTo, padToH, ...crop } = box
-    const keyed = await toInkStamp(sharp(SRC).extract(crop))
+    const { padTo, padToH, src, ...crop } = box
+    const keyed = await toInkStamp(sharp(SOURCES[src ?? 'invitation']).extract(crop))
     let stamp = keyed.stamp
 
     if (padTo || padToH) {
