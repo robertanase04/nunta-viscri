@@ -115,6 +115,19 @@ export function RouteLine() {
 
       const first = points[0]!
       const last = points[points.length - 1]!
+
+      /* The road stops short of the colophon rather than a fixed distance
+         past the last stop. The tandem rides the head of the drawn line, so
+         wherever the line ends is where it parks — and measured from the
+         last stop it was parking on top of the couple in the heart. Ending
+         it against the colophon's own top keeps that clear whatever the
+         copy above does to the page length. */
+      const colophon = document.querySelector('.colophon')
+      const colophonTop = colophon
+        ? colophon.getBoundingClientRect().top + window.scrollY
+        : last.y + 150
+      const tailEnd = Math.max(last.y + 40, colophonTop - 56)
+
       const full = [
         // Arrives from above the fold...
         { x: first.x, y: 0 },
@@ -122,8 +135,8 @@ export function RouteLine() {
         // ...and runs out below the final stop, drawn back toward the middle
         // so it points at the centred colophon instead of leaving sideways
         // off whichever edge the last stop happened to sit on.
-        { x: (last.x + w / 2) / 2, y: Math.min(last.y + 80, h) },
-        { x: w / 2, y: Math.min(last.y + 150, h) },
+        { x: (last.x + w / 2) / 2, y: Math.min((last.y + tailEnd) / 2, h) },
+        { x: w / 2, y: Math.min(tailEnd, h) },
       ]
 
       // The bow is only here to keep a run of same-side waypoints from
