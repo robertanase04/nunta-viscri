@@ -2,10 +2,13 @@
    The opening sequence.
 
    Shut, the card is two equal framed panels meeting at the seam, with a
-   wax seal over the join. The frames are drawn rather than photographed:
-   the printed borders are 530 and 436 wide against a common height, so
-   scaling the raster to equal halves would have squashed one set of
-   corner rosettes into ellipses.
+   wax seal over the join. Breaking the seal draws them off to either
+   side — slid, not swung — and leaves the map standing whole.
+
+   The frames are drawn rather than photographed: the printed borders are
+   530 and 436 wide against a common height, so scaling the raster to
+   equal halves would have squashed one set of corner rosettes into
+   ellipses.
    ------------------------------------------------------------------ */
 
 .stage {
@@ -44,14 +47,13 @@
      left standing at the end. Held back from the viewport edges so the
      push-in has somewhere to go. */
   width: min(88vw, 78vh * 0.7366);
-  perspective: 2200px;
-  perspective-origin: 50% 46%;
+  /* The covers travel sideways now, so there is no 3D context to set up —
+     and the card must not clip them, since they leave through its edges. */
 }
 
 .card {
   position: relative;
   aspect-ratio: 956 / 1298;
-  transform-style: preserve-3d;
 }
 
 /* Every face of the card — the map and both covers — is one of these:
@@ -64,7 +66,7 @@
 }
 
 .panel img,
-.shutter-print img {
+.shutter-face img {
   width: 100%;
   height: 100%;
   /* Contained, never cropped. The fortress is drawn hard against the fold
@@ -85,36 +87,27 @@
   top: 0;
   bottom: 0;
   width: 50%;
-  transform-style: preserve-3d;
-  /* The turn and the depth offset are written by GSAP. Driving them from
-     CSS custom properties looked tidier and did not work: an unregistered
-     custom property has no computed value to interpolate from, so the
-     covers jumped straight to open. */
+  /* The travel is written by GSAP. Driving it from a CSS custom property
+     looked tidier and did not work: an unregistered custom property has no
+     computed value to interpolate from, so the covers jumped to open. */
+  z-index: 2;
 }
 
 .shutter-left {
   left: 0;
-  transform-origin: left center;
 }
 
 .shutter-right {
   right: 0;
-  transform-origin: right center;
 }
 
-/* One face per cover, not two. See the note in the timeline: the second
-   face was meant to be hidden by backface-visibility, which this element
-   cannot have while it carries `overflow: hidden`. */
+/* One face per cover. Sliding away rather than turning over, a cover never
+   shows a reverse, so there is nothing behind this to draw. */
 .shutter-face {
   position: absolute;
   inset: 0;
   background: var(--paper);
   overflow: hidden;
-}
-
-.shutter-print {
-  position: absolute;
-  inset: 0;
 }
 
 /* The seam, as the shadow one leaf casts on the other. */
@@ -123,15 +116,6 @@
 }
 .shutter-right .shutter-face {
   box-shadow: inset 18px 0 26px -18px rgb(30 60 110 / 0.28);
-}
-
-/* Shading that deepens as each cover turns away from the light. */
-.shutter-shade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: rgb(20 45 90 / 0.5);
-  opacity: 0;
 }
 
 /* --- the seal ----------------------------------------------------- */

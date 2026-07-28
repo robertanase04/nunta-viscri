@@ -32,16 +32,26 @@ const SOURCES = {
 const OUT = join(ROOT, 'public/art')
 
 /**
- * The ink point. The paper point is not a constant — see `paperLevelOf`.
+ * Bounds on the per-tile ink point. Neither end of the key is a constant —
+ * see `paperLevelOf` and `inkLevelOf`.
  */
-const INK_LUM = 50
+const INK_MIN = 42
+const INK_MAX = 96
 /**
- * <1 lifts mid-density ink. This plate is set in fine hairline type and
- * the card is shown at roughly a quarter of the source width, so every
- * stroke is fighting the downscale; at 0.78 the result read visibly
- * lighter than the printed original.
+ * Target median coverage for a tile's drawn pixels, and the range the gamma
+ * is allowed to move in to reach it.
+ *
+ * Keying both ends per tile still left the map reading flatter than the
+ * covers next to it, because the difference is in the drawing rather than
+ * in the printing: a landscape of fine stipple simply carries less ink per
+ * square inch than a page of bold type. Rather than pick a gamma by hand
+ * per region, each tile solves for the one that puts its own median at the
+ * same place, so a stippled tile and a lettered one arrive on the page at
+ * the same weight.
  */
-const ALPHA_GAMMA = 0.6
+const TARGET_MEDIAN = 0.58
+const GAMMA_MIN = 0.34
+const GAMMA_MAX = 0.95
 
 /**
  * Everything below this coverage is the source JPEG's paper grain, not
@@ -169,6 +179,37 @@ function paperLevelOf(data, channels, px) {
 }
 
 /**
+ * The luminance of this tile's own darkest ink.
+ *
+ * Keying every tile against one global ink point left the map visibly
+ * flatter than the covers beside it — mean alpha 98 against 132, and a
+ * ninetieth percentile of 185 against 224. The reason is not that the map
+ * is printed lighter but that it is drawn differently: fine stipple and
+ * light landscape washes, where the covers are bold type and heavy line.
+ * A tile whose darkest tone never reaches the global point can never reach
+ * full alpha, so its whole range is compressed. Measuring both ends per
+ * tile lets each one use the full range whatever pen drew it.
+ */
+function inkLevelOf(data, channels, px) {
+  const hist = new Uint32Array(256)
+  for (let i = 0; i < px; i++) {
+    const o = i * channels
+    const lum =
+      0.2126 * data[o] + 0.7152 * data[o + 1] + 0.0722 * data[o + 2]
+    hist[Math.round(lum)] += 1
+  }
+  // The half-percentile of the dark end: past the odd stray pixel, but
+  // still the real body of the darkest stroke.
+  const target = px * 0.005
+  let seen = 0
+  for (let v = 0; v < 256; v++) {
+    seen += hist[v]
+    if (seen >= target) return Math.min(INK_MAX, Math.max(INK_MIN, v))
+  }
+  return INK_MIN
+}
+
+/**
  * Turn the tile into an ink stamp: paper keyed out into alpha, the plate's
  * own two colours kept. Done on raw pixels because it is a per-pixel curve,
  * not something sharp exposes.
@@ -182,24 +223,34 @@ async function toInkStamp(pipeline) {
   const px = info.width * info.height
   const out = Buffer.allocUnsafe(px * 4)
   const paperLum = paperLevelOf(data, info.channels, px)
-  const span = paperLum - INK_LUM
+  const inkLum = inkLevelOf(data, info.channels, px)
+  const span = paperLum - inkLum
+
+  /* Linear coverage first, so the gamma can be solved rather than guessed.
+     The median is taken over drawn pixels only — including the empty ground
+     would just measure how much of the tile is blank. */
+  const linear = new Float32Array(px)
+  const drawn = []
+  for (let i = 0; i < px; i++) {
+    const o = i * info.channels
+    const lum =
+      0.2126 * data[o] + 0.7152 * data[o + 1] + 0.0722 * data[o + 2]
+    let a = (paperLum - lum) / span
+    a = a < 0 ? 0 : a > 1 ? 1 : a
+    a = a <= PAPER_FLOOR ? 0 : (a - PAPER_FLOOR) / (1 - PAPER_FLOOR)
+    linear[i] = a
+    if (a > 0) drawn.push(a)
+  }
+  drawn.sort()
+  const median = drawn.length ? drawn[Math.floor(drawn.length / 2)] : TARGET_MEDIAN
+  const gamma =
+    median > 0 && median < 1
+      ? Math.min(GAMMA_MAX, Math.max(GAMMA_MIN, Math.log(TARGET_MEDIAN) / Math.log(median)))
+      : 1
 
   for (let i = 0; i < px; i++) {
     const o = i * info.channels
-    const r = data[o]
-    const g = data[o + 1]
-    const b = data[o + 2]
-
-    // Rec. 709 luma. Coverage only — which colour it is stays in RGB.
-    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-    let a = (paperLum - lum) / span
-    a = a < 0 ? 0 : a > 1 ? 1 : a
-
-    // Cut the paper grain away, then restretch so real hatching keeps its
-    // full range instead of being uniformly thinned by the subtraction.
-    a = a <= PAPER_FLOOR ? 0 : (a - PAPER_FLOOR) / (1 - PAPER_FLOOR)
-    a = Math.pow(a, ALPHA_GAMMA)
+    const a = linear[i] > 0 ? Math.pow(linear[i], gamma) : 0
 
     const q = i * 4
     if (a === 0) {
@@ -212,9 +263,9 @@ async function toInkStamp(pipeline) {
       out[q + 2] = VOID_RGB[2]
       out[q + 3] = 0
     } else {
-      out[q] = r
-      out[q + 1] = g
-      out[q + 2] = b
+      out[q] = data[o]
+      out[q + 1] = data[o + 1]
+      out[q + 2] = data[o + 2]
       out[q + 3] = Math.round(a * 255)
     }
   }
@@ -222,6 +273,8 @@ async function toInkStamp(pipeline) {
   return {
     stamp: sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } }),
     paperLum,
+    inkLum,
+    gamma: Math.round(gamma * 100) / 100,
   }
 }
 
@@ -298,7 +351,7 @@ async function main() {
       widths: emitted,
     }
     console.log(
-      `  ${name.padEnd(14)} ${srcW}x${srcH}  hartie ${keyed.paperLum}  ->  ${emitted.join(', ')}`,
+      `  ${name.padEnd(14)} ${srcW}x${srcH}  hartie ${keyed.paperLum} cerneala ${keyed.inkLum} gamma ${keyed.gamma}  ->  ${emitted.join(', ')}`,
     )
   }
 
