@@ -94,27 +94,28 @@ export function Milestone({
   style,
 }: Decorative & { n: string }) {
   return (
-    <svg viewBox="0 0 72 104" className={className} style={style} {...decorative(label ?? `Popas ${n}`)}>
+    <svg viewBox="0 0 76 136" className={className} style={style} {...decorative(label ?? `Popasul ${n}`)}>
       {/* body */}
       <path
-        d="M 14 100 L 14 34 A 22 22 0 0 1 58 34 L 58 100 Z"
+        d="M 14 130 L 14 40 A 24 24 0 0 1 62 40 L 62 130 Z"
         fill="var(--paper)"
         stroke="currentColor"
         strokeWidth={3}
         strokeLinejoin="round"
       />
       {/* hatched flank — the light falls from the upper left throughout */}
-      <g stroke="currentColor" strokeWidth={1.2} opacity={0.55}>
-        {Array.from({ length: 13 }, (_, i) => (
-          <line key={i} x1={17} y1={42 + i * 4.6} x2={24} y2={38 + i * 4.6} />
+      <g stroke="currentColor" strokeWidth={1.2} opacity={0.5}>
+        {Array.from({ length: 18 }, (_, i) => (
+          <line key={i} x1={17} y1={48 + i * 4.6} x2={24} y2={44 + i * 4.6} />
         ))}
       </g>
-      {/* sunken panel */}
+
+      {/* sunken panel with the number of the stop */}
       <rect
-        x={24}
-        y={40}
+        x={25}
+        y={44}
         width={26}
-        height={30}
+        height={28}
         rx={4}
         fill="none"
         stroke="currentColor"
@@ -122,17 +123,30 @@ export function Milestone({
         opacity={0.7}
       />
       <text
-        x={37}
-        y={62}
+        x={38}
+        y={65}
         textAnchor="middle"
         fill="currentColor"
-        style={{ font: '500 19px var(--font-caps)', letterSpacing: '0.02em' }}
+        style={{ font: '500 18px var(--font-caps)', letterSpacing: '0.02em' }}
       >
         {n}
       </text>
+
+      {/*
+        The Via Transilvanica waymark, struck below the number the way it is
+        on the real stones. The trail runs through these hills, and its T is
+        the one mark a walker here would already know — so it is drawn in the
+        trail's orange rather than in the invitation's ink, and this is the
+        only place on the site that colour appears.
+      */}
+      <g fill="var(--via)">
+        <rect x={26} y={84} width={24} height={7.5} rx={1.5} />
+        <rect x={34.5} y={84} width={7} height={26} rx={1.5} />
+      </g>
+
       {/* grass */}
       <g stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" fill="none">
-        <path d="M 8 100 q 3 -9 7 -12 M 12 100 q 1 -7 4 -11 M 64 100 q -3 -9 -7 -12 M 60 100 q -1 -7 -4 -11" />
+        <path d="M 8 130 q 3 -9 7 -12 M 12 130 q 1 -7 4 -11 M 68 130 q -3 -9 -7 -12 M 64 130 q -1 -7 -4 -11" />
       </g>
     </svg>
   )

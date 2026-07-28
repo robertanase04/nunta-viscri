@@ -21,6 +21,11 @@
   --accent: #a5202a;
   --accent-deep: #8d1a22;
 
+  /* The Via Transilvanica waymark. Not from the invitation — it belongs to
+     the trail that runs through these hills, and it appears in exactly one
+     place: struck on the milestones, the way it is on the real ones. */
+  --via: #e4720e;
+
   /* --- paper --- */
   --paper: #f4ebe0;
   --paper-warm: #ece1d3;

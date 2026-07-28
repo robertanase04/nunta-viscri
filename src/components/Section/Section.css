@@ -32,11 +32,13 @@
   margin-bottom: 0.4rem;
 }
 
-/* The stone holds the outer margin; the route is measured through it. */
+/* The stone holds the outer margin; the route is measured through it.
+   Sized up from 42-58 to carry the waymark under the number without
+   crowding either. */
 .section-stone {
   position: absolute;
   top: clamp(4.5rem, 10vh, 8rem);
-  width: clamp(42px, 4.4vw, 58px);
+  width: clamp(54px, 5.6vw, 76px);
   color: var(--ink);
 }
 
@@ -58,7 +60,7 @@
 .section-exit {
   position: absolute;
   bottom: 0;
-  width: clamp(42px, 4.4vw, 58px);
+  width: clamp(54px, 5.6vw, 76px);
   height: 1px;
 }
 
