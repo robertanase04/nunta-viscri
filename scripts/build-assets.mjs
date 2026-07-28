@@ -26,8 +26,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = join(ROOT, 'assets/source/invitation-v2.png')
 const OUT = join(ROOT, 'public/art')
 
-/** Measured from the source — see the palette extraction in tokens.css. */
-const PAPER_LUM = 236
+/**
+ * The ink point. The paper point is not a constant — see `paperLevelOf`.
+ */
 const INK_LUM = 50
 /**
  * <1 lifts mid-density ink. This plate is set in fine hairline type and
@@ -45,7 +46,7 @@ const ALPHA_GAMMA = 0.6
  * The site paints its own paper and its own grain, so this is discarded
  * detail we actively do not want.
  */
-const PAPER_FLOOR = 0.055
+const PAPER_FLOOR = 0.07
 
 /**
  * What to paint the fully transparent pixels.
@@ -135,6 +136,33 @@ const classOf = (name) =>
   name.startsWith('cover-') || name === 'map' ? 'panel' : 'vignette'
 
 /**
+ * The luminance of this tile's own paper, as the most common bright value
+ * in it.
+ *
+ * A single paper level for the whole plate does not hold. The map is washed
+ * unevenly, so a region lifted from a lightly toned part of it reads as ink
+ * against a global threshold and comes out as a faintly tinted rectangle —
+ * which is exactly what the vignettes were doing, most visibly around the
+ * Viscri house, whose corners were sitting at alpha 30 instead of nothing.
+ * Measuring per tile keys each one against the paper it was actually
+ * printed on.
+ */
+function paperLevelOf(data, channels, px) {
+  const hist = new Uint32Array(256)
+  for (let i = 0; i < px; i++) {
+    const o = i * channels
+    const lum =
+      0.2126 * data[o] + 0.7152 * data[o + 1] + 0.0722 * data[o + 2]
+    hist[Math.round(lum)] += 1
+  }
+  // Paper is always the bright end; ink never is. Searching from 150 up
+  // keeps a dense drawing from voting for its own hatching.
+  let best = 150
+  for (let v = 150; v < 256; v++) if (hist[v] > hist[best]) best = v
+  return best
+}
+
+/**
  * Turn the tile into an ink stamp: paper keyed out into alpha, the plate's
  * own two colours kept. Done on raw pixels because it is a per-pixel curve,
  * not something sharp exposes.
@@ -147,7 +175,8 @@ async function toInkStamp(pipeline) {
 
   const px = info.width * info.height
   const out = Buffer.allocUnsafe(px * 4)
-  const span = PAPER_LUM - INK_LUM
+  const paperLum = paperLevelOf(data, info.channels, px)
+  const span = paperLum - INK_LUM
 
   for (let i = 0; i < px; i++) {
     const o = i * info.channels
@@ -158,7 +187,7 @@ async function toInkStamp(pipeline) {
     // Rec. 709 luma. Coverage only — which colour it is stays in RGB.
     const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
 
-    let a = (PAPER_LUM - lum) / span
+    let a = (paperLum - lum) / span
     a = a < 0 ? 0 : a > 1 ? 1 : a
 
     // Cut the paper grain away, then restretch so real hatching keeps its
@@ -184,7 +213,10 @@ async function toInkStamp(pipeline) {
     }
   }
 
-  return sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })
+  return {
+    stamp: sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } }),
+    paperLum,
+  }
 }
 
 async function main() {
@@ -200,7 +232,8 @@ async function main() {
   for (const [name, box] of Object.entries(REGIONS)) {
     if (only && !name.includes(only)) continue
     const { padTo, padToH, ...crop } = box
-    let stamp = await toInkStamp(sharp(SRC).extract(crop))
+    const keyed = await toInkStamp(sharp(SRC).extract(crop))
+    let stamp = keyed.stamp
 
     if (padTo || padToH) {
       const dx = (padTo ?? crop.width) - crop.width
@@ -258,7 +291,9 @@ async function main() {
       aspect: +(srcW / srcH).toFixed(4),
       widths: emitted,
     }
-    console.log(`  ${name.padEnd(14)} ${srcW}x${srcH}  ->  ${emitted.join(', ')}`)
+    console.log(
+      `  ${name.padEnd(14)} ${srcW}x${srcH}  hartie ${keyed.paperLum}  ->  ${emitted.join(', ')}`,
+    )
   }
 
   await writeFile(

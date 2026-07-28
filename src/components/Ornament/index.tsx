@@ -66,6 +66,64 @@ export function Rosette({ label, className, style }: Decorative) {
 }
 
 /**
+ * The Via Transilvanica waymark: a T inside a ring.
+ *
+ * The real mark is painted by hand, so the ring is not a circle — it runs
+ * thick and thin and wanders off true. Drawing a perfect circle here looked
+ * like a road sign rather than a blaze, so the radius is modulated around
+ * the turn from a fixed table. Fixed, not random: the same stone must draw
+ * the same ring on every render.
+ */
+export function ViaMark({ r = 15, className, style }: Omit<Decorative, 'label'> & { r?: number }) {
+  /* Twenty-four steps around, and the wobble kept under two percent. At
+     sixteen steps and three percent the ring came out reading as an
+     octagon rather than as a hand-painted circle — with a stroke this
+     thick, the facets between control points show. */
+  const wobble = [
+    1.0, 1.012, 0.996, 1.008, 0.99, 1.006, 1.014, 0.998, 1.008, 0.992, 1.01,
+    1.0, 0.994, 1.012, 0.998, 1.008, 0.99, 1.004, 1.014, 0.996, 1.006, 0.992,
+    1.01, 1.002,
+  ]
+
+  const ring = wobble.map((w, i) => polar((i * 360) / wobble.length, r * w))
+
+  // Closed Catmull-Rom, so the ring meets itself without a corner.
+  const n = ring.length
+  const d: string[] = [`M ${pt(ring[0]!)}`]
+  for (let i = 0; i < n; i++) {
+    const p0 = ring[(i - 1 + n) % n]!
+    const p1 = ring[i]!
+    const p2 = ring[(i + 1) % n]!
+    const p3 = ring[(i + 2) % n]!
+    d.push(
+      `C ${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(2)} ${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(2)},` +
+        ` ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(2)} ${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(2)},` +
+        ` ${pt(p2)}`,
+    )
+  }
+  d.push('Z')
+
+  const bar = r * 0.62
+  const stem = r * 0.24
+
+  return (
+    <g className={className} style={style} fill="var(--via)" aria-hidden>
+      <path
+        d={d.join(' ')}
+        fill="none"
+        stroke="var(--via)"
+        strokeWidth={r * 0.28}
+        strokeLinejoin="round"
+      />
+      {/* The T: a wide bar over a stem, both with the softened ends of a
+          brush rather than the sharp corners of type. */}
+      <rect x={-bar} y={-r * 0.44} width={bar * 2} height={stem} rx={stem * 0.32} />
+      <rect x={-stem / 2} y={-r * 0.44} width={stem} height={r * 0.92} rx={stem * 0.32} />
+    </g>
+  )
+}
+
+/**
  * Rule, flourish, rule. The invitation sets its quote between two of these.
  */
 export function Divider({ label, className, style }: Decorative) {
@@ -134,14 +192,13 @@ export function Milestone({
 
       {/*
         The Via Transilvanica waymark, struck below the number the way it is
-        on the real stones. The trail runs through these hills, and its T is
-        the one mark a walker here would already know — so it is drawn in the
-        trail's orange rather than in the invitation's ink, and this is the
-        only place on the site that colour appears.
+        on the real stones. The trail runs through these hills, and its T in
+        a ring is the one mark a walker here would already know — so it is
+        drawn in the trail's orange rather than in the invitation's ink, and
+        this is the only place on the site that colour appears.
       */}
-      <g fill="var(--via)">
-        <rect x={26} y={84} width={24} height={7.5} rx={1.5} />
-        <rect x={34.5} y={84} width={7} height={26} rx={1.5} />
+      <g transform="translate(38 96)">
+        <ViaMark r={15.5} />
       </g>
 
       {/* grass */}
