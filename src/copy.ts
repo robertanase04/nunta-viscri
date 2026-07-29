@@ -60,6 +60,9 @@ export interface Copy {
     altMap: string
   }
 
+  /* nameBefore/Accent/After exist so the accent colour can fall on one
+     phrase without splitting the sentence across elements a reader would
+     hear separately. */
   masthead: { kicker: string; nameBefore: string; nameAccent: string; nameAfter: string; dates: string }
 
   story: { title: string; paragraphs: readonly string[]; altEmblem: string }
@@ -83,7 +86,7 @@ const ro: Copy = {
     seal: 'Rupe sigiliul și deschide invitația',
     scroll: 'Coboară',
     loading: 'Se încarcă',
-    altCoverLeft: 'Casa Tanase — noi doi, va chemam pe voi, pe colinele Transilvaniei',
+    altCoverLeft: 'Casa Tanase — noi doi va chemam pe voi, pe colinele Transilvaniei',
     altCoverRight:
       'Cele mai frumoase ture sunt cele pe care le facem impreuna cu voi — transport, cazare si dress code',
     altMap:
@@ -92,7 +95,7 @@ const ro: Copy = {
 
   masthead: {
     kicker: 'Pe colinele Transilvaniei',
-    nameBefore: 'Noi doi,',
+    nameBefore: 'Noi doi',
     nameAccent: 'vă chemăm',
     nameAfter: 'pe voi',
     dates: 'septembrie 2026',
