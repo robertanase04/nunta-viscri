@@ -73,7 +73,7 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
       gsap.set(leftEl, { xPercent: -100 })
       gsap.set(rightEl, { xPercent: 100 })
       gsap.set(cardEl, { scale: openScale(cardEl) })
-      gsap.to(hint.current, { opacity: 0.8, duration: 0.4 })
+      gsap.to(hint.current, { opacity: 1, duration: 0.4 })
       onOpen()
       return
     }
@@ -106,7 +106,7 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
     tl.to(cardEl, { scale: openScale(cardEl), duration: SLIDE_DUR, ease: 'power2.inOut' }, LEAD_LEFT)
 
     tl.call(onOpen, undefined, OPEN)
-    tl.to(hint.current, { opacity: 0.8, duration: 0.7 }, OPEN - 0.4)
+    tl.to(hint.current, { opacity: 1, duration: 0.7 }, OPEN - 0.4)
   }, [opened, reduced, onOpen])
 
   // Enter and Space arrive as clicks on a real button, so only Escape needs
@@ -183,30 +183,59 @@ export function CardUnfold({ onOpen }: CardUnfoldProps) {
             onClick={open}
             aria-label={T.intro.seal}
           >
-            <WaxSeal />
+            <WaxSeal label={T.intro.sealLabel} />
           </button>
         )}
       </div>
 
+      {/* The handover. It has to be read, not noticed: with the spread open
+          and nothing else moving, a faint line at the foot of the screen
+          was not enough to tell anyone the page continued. */}
       <div className="scroll-hint" ref={hint} aria-hidden>
-        <span className="caps caps-wide">{T.intro.scroll}</span>
-        <span className="scroll-hint-rule" />
+        <span className="caps caps-wide scroll-hint-word">{T.intro.scroll}</span>
+        <span className="scroll-hint-track">
+          <svg className="scroll-hint-arrow" viewBox="-8 -5 16 10">
+            <polyline
+              points="-5.6 -3 0 3 5.6 -3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.7}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </div>
     </div>
   )
 }
 
+/** The widest a word may be set inside the seal's inner ring. */
+const STRIKE_WIDTH = 70
+
 /**
- * A wax seal: a pressed disc with a scalloped edge and the couple's
- * initials struck into it, under the compass star the plate uses as its
- * mark. Red, which on this invitation is the colour of the couple.
+ * A wax seal: a pressed disc with a scalloped edge and one word struck
+ * across it in white. Red, which on this invitation is the colour of the
+ * couple.
+ *
+ * The word carries the whole instruction. A mark alone — the compass star
+ * that used to be here — looked like decoration, and people sat looking at
+ * the shut card waiting for it to do something.
  */
-function WaxSeal() {
+function WaxSeal({ label }: { label: string }) {
   const scallops = Array.from({ length: 28 }, (_, i) => {
     const a = (i / 28) * Math.PI * 2
     const r = 46 + (i % 2 === 0 ? 3.4 : 0)
     return `${(Math.cos(a) * r).toFixed(2)} ${(Math.sin(a) * r).toFixed(2)}`
   })
+
+  /* DESCHIDE is eight letters and OPEN is four, so neither the size nor
+     the width can be fixed. Both are set from the length and then held to
+     the ring by textLength, which condenses rather than overflows — so a
+     longer word in some future language still lands inside the wax. */
+  const text = label.toUpperCase()
+  const width = Math.min(STRIKE_WIDTH, text.length * 12.5)
+  const size = text.length > 6 ? 16.5 : 21
 
   return (
     <svg viewBox="-56 -56 112 112" aria-hidden>
@@ -222,29 +251,19 @@ function WaxSeal() {
       <polygon points={scallops.join(' ')} fill="url(#wax)" />
       <circle r={38} fill="none" stroke="rgb(255 255 255 / 0.22)" strokeWidth={1.4} />
 
-      {/* The struck impression: highlight above, shadow below, so it reads
-          as pressed into the wax rather than printed on it. */}
-      <g className="wax-strike" fill="none" strokeLinejoin="round">
-        <g transform="translate(0 -1)" stroke="rgb(0 0 0 / 0.28)" strokeWidth={2.2}>
-          <Strike />
-        </g>
-        <g transform="translate(0 1)" stroke="rgb(255 255 255 / 0.3)" strokeWidth={2.2}>
-          <Strike />
-        </g>
+      {/* Struck, not printed: a dark ghost a hair below the white, so the
+          letters read as pressed into the wax. */}
+      <g className="wax-word" textAnchor="middle" dominantBaseline="central" fontSize={size}>
+        {/* textLength belongs on each text element — it is a geometry
+            attribute, not an inherited property, so a shared parent would
+            silently drop it. */}
+        <text y={1.6} fill="rgb(74 14 20 / 0.42)" textLength={width} lengthAdjust="spacingAndGlyphs">
+          {text}
+        </text>
+        <text y={0.4} fill="#fff" textLength={width} lengthAdjust="spacingAndGlyphs">
+          {text}
+        </text>
       </g>
     </svg>
   )
-}
-
-/** The mark struck into the seal — the compass star, at seal scale. */
-function Strike() {
-  const pts: string[] = []
-  for (let i = 0; i < 8; i++) {
-    const a = (i * Math.PI) / 4 - Math.PI / 2
-    const r = i % 2 === 0 ? 24 : 15
-    pts.push(`${(Math.cos(a) * r).toFixed(1)} ${(Math.sin(a) * r).toFixed(1)}`)
-    const b = a + Math.PI / 8
-    pts.push(`${(Math.cos(b) * 6).toFixed(1)} ${(Math.sin(b) * 6).toFixed(1)}`)
-  }
-  return <polygon points={pts.join(' ')} />
 }

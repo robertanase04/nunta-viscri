@@ -129,7 +129,8 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 5;
-  width: clamp(72px, 13%, 116px);
+  /* Big enough to read a word off, which is the whole point of it. */
+  width: clamp(96px, 19%, 138px);
   aspect-ratio: 1;
   padding: 0;
   border: 0;
@@ -155,34 +156,76 @@
   transform: translate(-50%, -50%) scale(0.97);
 }
 
-/* A slow pulse outward, so the seal reads as the thing to press without
-   needing a word of instruction next to it. */
+/* The word struck into the wax. Set in the caps face at the seal's own
+   scale; the geometry — size and condensing — is written by the component,
+   because it depends on how long the word is. */
+.wax-word text {
+  font-family: var(--font-caps);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Two rings going out, half a cycle apart, and the disc breathing under
+   them. A single faint ring was not reading as an invitation to press —
+   people sat looking at the shut card. */
 @media (prefers-reduced-motion: no-preference) {
+  .wax-seal::before,
   .wax-seal::after {
     content: '';
     position: absolute;
     inset: -6%;
     border-radius: 50%;
-    border: 1px solid var(--accent);
-    animation: seal-pulse 3s var(--ease-inout) infinite;
+    border: 2px solid var(--accent);
+    animation: seal-pulse 2.2s var(--ease-inout) infinite;
     pointer-events: none;
   }
+
+  /* The second ring is the first one, one beat behind. */
+  .wax-seal::before {
+    animation-delay: 1.1s;
+  }
+
+  /* The breathing goes on the artwork, not the button: GSAP owns the
+     button's transform for the break, and a CSS animation on the same
+     property would win the cascade and fight it. */
+  .wax-seal svg {
+    animation: seal-breathe 2.2s var(--ease-inout) infinite;
+    transform-origin: 50% 50%;
+  }
+
+  .wax-seal:hover::before,
+  .wax-seal:focus-visible::before,
   .wax-seal:hover::after,
   .wax-seal:focus-visible::after {
     animation: none;
     opacity: 0;
   }
+
+  .wax-seal:hover svg,
+  .wax-seal:focus-visible svg {
+    animation: none;
+  }
 }
 
 @keyframes seal-pulse {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.85;
+  }
+  70%,
+  100% {
+    transform: scale(1.42);
+    opacity: 0;
+  }
+}
+
+@keyframes seal-breathe {
   0%,
   100% {
     transform: scale(1);
-    opacity: 0.5;
   }
-  60% {
-    transform: scale(1.28);
-    opacity: 0;
+  50% {
+    transform: scale(1.07);
   }
 }
 
@@ -233,32 +276,51 @@
   transform: translateX(-50%);
   display: grid;
   justify-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   color: var(--ink);
   opacity: 0;
 }
 
-.scroll-hint-rule {
-  width: 1px;
-  height: clamp(26px, 4.4vh, 42px);
-  background: linear-gradient(var(--ink), transparent);
+/* On a plate, like everything else that sits over paper. Set loose the
+   words were competing with the illustration behind them and losing. */
+.scroll-hint-word {
+  padding: 0.42em 1.15em;
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: var(--deboss);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* A chevron falling under the words. The tall rule that used to be here
+   was dropped when the words went onto a plate: together they stood taller
+   than the gap below the open spread, and the plate ended up sitting on
+   the invitation's bottom border rather than under it. */
+.scroll-hint-track {
+  display: grid;
+  justify-items: center;
+}
+
+.scroll-hint-arrow {
+  width: 22px;
+  display: block;
+  opacity: 0.85;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .scroll-hint-rule {
-    animation: hint-drop 2.4s var(--ease-inout) infinite;
-    transform-origin: top;
+  .scroll-hint-arrow {
+    animation: hint-fall 1.6s var(--ease-inout) infinite;
   }
 }
 
-@keyframes hint-drop {
+@keyframes hint-fall {
   0%,
   100% {
-    transform: scaleY(0.55);
-    opacity: 0.5;
+    transform: translateY(-5px);
+    opacity: 0.35;
   }
   50% {
-    transform: scaleY(1);
+    transform: translateY(4px);
     opacity: 1;
   }
 }
@@ -276,6 +338,6 @@
     width: min(90vw, 72vh * 0.7366);
   }
   .wax-seal {
-    width: clamp(62px, 17%, 92px);
+    width: clamp(84px, 24%, 116px);
   }
 }

@@ -52,6 +52,8 @@ export interface Copy {
   description: string
 
   intro: {
+    /** Struck across the seal itself, so it reads as a thing to press. */
+    sealLabel: string
     seal: string
     scroll: string
     loading: string
@@ -83,8 +85,9 @@ const ro: Copy = {
     'Trei zile în Saschiz, Viscri și Bunești. Program, locuri, transport și cazare.',
 
   intro: {
+    sealLabel: 'Deschide',
     seal: 'Rupe sigiliul și deschide invitația',
-    scroll: 'Coboară',
+    scroll: 'Derulează în jos',
     loading: 'Se încarcă',
     altCoverLeft: 'Casa Tanase — noi doi va chemam pe voi, pe colinele Transilvaniei',
     altCoverRight:
@@ -231,8 +234,9 @@ const en: Copy = {
     'Three days across Saschiz, Viscri and Bunești. Programme, places, transport and lodging.',
 
   intro: {
+    sealLabel: 'Open',
     seal: 'Break the seal and open the invitation',
-    scroll: 'Scroll',
+    scroll: 'Scroll down',
     loading: 'Loading',
     altCoverLeft: 'Casa Tanase — the two of us, inviting the two of you, to the hills of Transylvania',
     altCoverRight:
